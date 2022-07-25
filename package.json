@@ -4,7 +4,6 @@
   "version": "0.1",
   "description": "",
   "main": "index.js",
-  "license": "MIT",
   "bin": {
     "rpg-cli": "./index.js"
   },
