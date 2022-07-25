@@ -1,0 +1,17 @@
+{
+  "name": "rpg-cli",
+  "package-name": "rpg-cli",
+  "version": "0.1",
+  "description": "",
+  "main": "index.js",
+  "license": "MIT",
+  "bin": {
+    "rpg-cli": "./index.js"
+  },
+  "scripts": {},
+  "dependencies": {
+    "inquirer": "^8.0.0",
+    "minimalist": "^1.0.0",
+    "minimist": "^1.2.6"
+  }
+}
