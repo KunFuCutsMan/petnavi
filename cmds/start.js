@@ -1,4 +1,21 @@
+// Imports and other stuff used
+const NFM = require('../utils/NaviFileManager')
+const inquirer = require('inquirer')
+
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
+
+// Too big to be in inquirer prompts
+const coreTypeList = [
+	{name: 'Neutral', value: 'NEUTRAL',},
+	{name: 'Fire', value: 'FIRE'},
+	{name: 'Wood', value: 'WOOD'},
+	{name: 'Elec', value: 'ELEC'},
+	{name: 'Aqua', value: 'AQUA'},
+	{name: 'Sword', value: 'SWORD'},
+	{name: 'Wind', value: 'WIND'},
+	{name: 'Target', value: 'TARGET'},
+	{name: 'Break', value: 'BREAK'}
+]
 
 // Text
 const introText = [
@@ -43,20 +60,8 @@ const naviFileText = [
 	So take care of them, ok? :)`
 ]
 
-// Too big to be in inquirer prompts
-const coreTypeList = [
-	{name: 'Neutral', value: 'NEUTRAL',},
-	{name: 'Fire', value: 'FIRE'},
-	{name: 'Wood', value: 'WOOD'},
-	{name: 'Elec', value: 'ELEC'},
-	{name: 'Aqua', value: 'AQUA'},
-	{name: 'Sword', value: 'SWORD'},
-	{name: 'Wind', value: 'WIND'},
-	{name: 'Target', value: 'TARGET'},
-	{name: 'Break', value: 'BREAK'}
-]
-
-module.exports = async (args, inquirer) => {
+// Module
+module.exports = async (args) => {
 	// Flag check to see if the text wants to be skipped
 	const boolSkipText = (args.s || args.skip)
 	
@@ -107,10 +112,13 @@ module.exports = async (args, inquirer) => {
 	})
 
 	// Navi File confirmation
-	if (answerNaviFile.naviFileConfirm) {
-		console.error('Navi file creation not implemented yet')
+	if (!answerNaviFile.naviFileConfirm) {
+		console.log('Permission for navi file creation denied')
+		process.exit(0)
 	}
-	else {
-		console.error('Permission for navi file creation denied')
-	}
+	
+	const naviName = answerName.naviName
+	const coreType = answerCore.coreType
+		
+	NFM.makeNewNavi(naviName, 10, coreType)
 }

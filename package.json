@@ -10,7 +10,6 @@
   "scripts": {},
   "dependencies": {
     "inquirer": "^8.0.0",
-    "minimalist": "^1.0.0",
     "minimist": "^1.2.6"
   }
 }
