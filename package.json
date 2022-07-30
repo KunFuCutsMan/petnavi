@@ -1,15 +1,15 @@
 {
-  "name": "rpg-cli",
-  "package-name": "rpg-cli",
-  "version": "0.1",
-  "description": "",
-  "main": "index.js",
-  "bin": {
-    "rpg-cli": "./index.js"
-  },
-  "scripts": {},
-  "dependencies": {
-    "inquirer": "^8.0.0",
-    "minimist": "^1.2.6"
+	"name": "rpg-cli",
+	"package-name": "rpg-cli",
+	"version": "0.2.0",
+	"description": "",
+	"main": "index.js",
+	"bin": {
+	"rpg-cli": "./index.js"
+	},
+	"scripts": {},
+	"dependencies": {
+	"inquirer": "^8.0.0",
+	"minimist": "^1.2.6"
   }
 }

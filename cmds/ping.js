@@ -1,3 +1,3 @@
 module.exports = (args) => {
-  console.log(`Pong!`)
+	console.log(`Pong!`)
 }
