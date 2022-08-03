@@ -1,26 +1,86 @@
 // Imports and constants
 const fs = require('fs')
+const path = require ('path')
+const storage = require('node-persist')
 
-const defaultNavi = {
-		"name": 'defaultNavi.EXE',
-		"level": 10,
-		"core": 'NEUTRAL',
-		"maxHP": 100,
-		"HP": 100,
-		"maxCP": 20,
-		"CP": 20,
-		"CPattacks": [
-			"Cannon",
-			"Cannon",
-			"Vulcan",
-			"Vulcan",
-			"Sword",
-			"WideSword",
-			"AirShot",
-			"HP10",
-			"HP10",
-		]
+// Storage
+const STORAGE_SETTINGS = {
+	dir: path.resolve(__dirname, '..', 'NaviStorage'),
+	stringify: JSON.stringify,
+	parse: JSON.parse,
+	encoding: 'utf8',
+	logging: false,
+	ttl: true,
+	expiredInterval: 2 * 60 * 1000,
+	forgiveParseErrors: true
+}
+
+const NAVI_TEMPLATE = {
+	"name": 'DefaultNavi.EXE',
+	"level": 10,
+	"core": 'NEUTRAL',
+	"maxHP": 100,
+	"HP": 100,
+	"maxCP": 20,
+	"CP": 20,
+	"CPattacks": [
+		"Cannon",
+		"Cannon",
+		"Vulcan",
+		"Vulcan",
+		"Sword",
+		"WideSword",
+		"AirShot",
+		"HP10",
+		"HP10",
+	]
+}
+
+/**
+ * isNaviJson(json)
+ * Checks if the json provided has the same layout
+ * as NAVI_TEMPLATE, checking order and length of the keys
+ * of the json provided
+ * */
+function isNaviJson(json) {
+	// Key arrays
+	let NaviTemplateKeys = []
+	let jsonKeys = []
+
+	for (const key in NAVI_TEMPLATE)
+		NaviTemplateKeys.push(key)
+
+	for (const key in json)
+		jsonKeys.push(key)
+
+	// Key length must be the same as NAVI_TEMPLATE
+	if ( NaviTemplateKeys.length !== jsonKeys.length )
+		return false
+
+	// Order and name of keys must be the same
+	for (let i = 0; i < NaviTemplateKeys.length; i++) {
+		if (NaviTemplateKeys[i] !== jsonKeys[i])
+			return false
 	}
+
+	return true
+}
+
+/**
+ * loadNaviIntoStorage(json)
+ * Using node-persists, loads the navi into local storage
+ * Using the navi's name (i.e. 'DefaultNavi.EXE') as its key
+ * */
+async function loadNaviIntoStorage(json) {
+	await storage.init(STORAGE_SETTINGS)
+
+	const name = json.name
+	await storage.setItem(name, json)
+}
+
+async function saveNaviFromStorage(naviName) {
+	// body...
+}
 
 /**
  * readJson(fileName)
@@ -29,12 +89,14 @@ const defaultNavi = {
  * @return The file's json
  * */
 async function readJson(fileName) {
-	if ( !fs.existsSync('./'+fileName) ) {
-		console.error('Could not find "'+fileName+'"')
+	try {
+		const str = fs.readFileSync('./'+fileName, 'utf8')
+		return JSON.parse( str )
+	}
+	catch (e) {
+		console.error('An error occurred whilst reading the file:\n'+e)
 		process.exit(1)
 	}
-
-	return JSON.parse( fs.readFileSync('./'+fileName, 'utf8') )
 }
 
 /**
@@ -55,11 +117,9 @@ async function makeJson(json, fileName) {
 
 	fs.writeFile('./'+fileName, jsonString , 'utf8', (e) => {
 		if (e) {
-			console.error('An error occurred whilsy making the file:\n'+e)
+			console.error('An error occurred whilst making the file:\n'+e)
 			process.exit(1)
 		}
-
-		console.log('File created successfully as '+fileName)
 	})
 }
 
@@ -71,16 +131,16 @@ async function makeJson(json, fileName) {
  * 
  * After that the file is made using makeJson()
  * */
-async function makeNewNavi(naviName, lvl, core) {
+async function makeNewNavi(name, lvl, core) {
 	hp = lvl * 10
 	cp = lvl * 2
 
-	const navi = new Object( defaultNavi )
-	navi.name = naviName + '.EXE'
+	const navi = new Object( NAVI_TEMPLATE )
+	navi.name = name + '.EXE'
 	navi.level = lvl
 	navi.core = core
 	navi.maxHP = hp
-	navi.hp = hp
+	navi.HP = hp
 	navi.maxCP = cp
 	navi.CP = cp
 
@@ -92,5 +152,16 @@ async function makeNewNavi(naviName, lvl, core) {
 module.exports = {
 	readJson,
 	makeJson,
-	makeNewNavi
+	makeNewNavi,
+	isNaviJson,
+	loadNaviIntoStorage
 }
+
+// = NOTES TODO TODAY =
+
+// Navi File Handler
+// 	* Object persistance throught CLI (may require another command)
+// 		- New commands: "load" & "save"
+// 			- load: loads the navi file provided into the rom/database
+// 			- save: gets that navi file from the rom/database to the file
+// 	* Handle and uptate said stats unto navi json file

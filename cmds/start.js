@@ -75,8 +75,7 @@ module.exports = async (args) => {
 	const answerName = await inquirer.prompt({
 		type: 'input',
 		name: 'naviName',
-		message: 'What is the name of your navi?\n'
-		+'( ".exe" will be added to it, no need to write fake extensions )\n'
+		message: 'What is the name of your navi? (Without extensions)'
 	})
 
 	// Core Type prompt
@@ -119,6 +118,8 @@ module.exports = async (args) => {
 	
 	const naviName = answerName.naviName
 	const coreType = answerCore.coreType
-		
-	NFM.makeNewNavi(naviName, 10, coreType)
+	
+	console.time('Navi File created in')
+	await NFM.makeNewNavi(naviName, 10, coreType)
+	console.timeEnd('Navi File created in')
 }
