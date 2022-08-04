@@ -1,4 +1,4 @@
-const cmd = 'rpg-cli'
+const cmd = 'petnavi'
 
 const menus = {
 main: `
@@ -14,12 +14,7 @@ main: `
 	COMMON ARGUMENTS:
 	<fileName> ......... File name of navi (i.e. "DefaultNaviDotEXE.json")
 	<naviName> ......... Navi's name (with .EXE suffix)`,
-ping: `
-	${cmd} ping
-
-	Replies with "Pong!"
-	Not much else is going on.`,
-	start: `
+start: `
 	${cmd} start [flags]
 
 	Start your adventure by making your own navi.

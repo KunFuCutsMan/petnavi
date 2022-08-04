@@ -18,9 +18,6 @@ async function main() {
 		case 'version':
 			require('./cmds/version')(args)
 			break
-		case 'ping':
-			require('./cmds/ping')(args)
-			break
 		case 'start':
 			require('./cmds/start')(args)
 			break

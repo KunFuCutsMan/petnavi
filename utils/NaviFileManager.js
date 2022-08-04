@@ -90,6 +90,11 @@ async function saveNaviFromStorage(naviName) {
 	return await storage.getItem(naviName)
 }
 
+/**
+ * uptateNaviStatsInStorage(naviName, json)
+ * Updates the current navi provided in 'naviName' to the
+ * json provided in 'json'
+ * */
 async function uptateNaviStatsInStorage(naviName, json) {
 	await storage.init(STORAGE_SETTINGS)
 
@@ -169,9 +174,6 @@ module.exports = {
 	makeNewNavi,
 	isNaviJson,
 	loadNaviIntoStorage,
-	saveNaviFromStorage
+	saveNaviFromStorage,
+	uptateNaviStatsInStorage
 }
-
-// Navi File Handler
-// 	* Object persistance throught CLI (may require another command)
-// 	* Handle and uptate said stats unto navi json file
