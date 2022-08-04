@@ -78,8 +78,22 @@ async function loadNaviIntoStorage(json) {
 	await storage.setItem(name, json)
 }
 
+/**
+ * saveNaviFromStorage(naviName)
+ * Gets the navi from '/NaviStorage' with the name of the navi
+ * (i.e. "DefaultNavi.EXE") and saves that navi with its
+ * appropiate name
+ * */
 async function saveNaviFromStorage(naviName) {
-	// body...
+	await storage.init(STORAGE_SETTINGS)
+
+	return await storage.getItem(naviName)
+}
+
+async function uptateNaviStatsInStorage(naviName, json) {
+	await storage.init(STORAGE_SETTINGS)
+
+	await storage.updateItem(naviName, json)
 }
 
 /**
@@ -144,7 +158,7 @@ async function makeNewNavi(name, lvl, core) {
 	navi.maxCP = cp
 	navi.CP = cp
 
-	makeJson( navi, naviName + 'DotEXE.json' )
+	makeJson( navi, name + 'DotEXE.json' )
 }
 
 // Navi File Manager (or NFM) is an object containing
@@ -154,14 +168,10 @@ module.exports = {
 	makeJson,
 	makeNewNavi,
 	isNaviJson,
-	loadNaviIntoStorage
+	loadNaviIntoStorage,
+	saveNaviFromStorage
 }
-
-// = NOTES TODO TODAY =
 
 // Navi File Handler
 // 	* Object persistance throught CLI (may require another command)
-// 		- New commands: "load" & "save"
-// 			- load: loads the navi file provided into the rom/database
-// 			- save: gets that navi file from the rom/database to the file
 // 	* Handle and uptate said stats unto navi json file
