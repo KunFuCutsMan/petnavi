@@ -102,6 +102,58 @@ async function uptateNaviStatsInStorage(naviName, json) {
 }
 
 /**
+ * getNaviFromStorage(naviName)
+ * Gets the current navi loaded in the storage
+ * */
+async function getNaviFromStorage(naviName) {
+	await storage.init(STORAGE_SETTINGS)
+
+	return await storage.getItem(naviName)
+}
+
+/** 
+ * getAllLoadedNavis()
+ * Returns all the loaded Navis
+ * */
+async function getAllLoadedNavis() {
+	await storage.init(STORAGE_SETTINGS)
+
+	return await storage.valuesWithKeyMatch('.EXE')
+}
+
+/**
+ * getNaviCard(navi)
+ * Returns a card showing the navi's stats
+ * */
+function getNaviCard(navi) {
+	// Get the navi's CPattacks arranged neatly
+	// Into lines of 5
+	let i = 0
+	let lines = ``
+
+	while (i < navi.CPattacks.length) {
+		if (i % 5 == 0)
+			lines += `
+	${navi.CPattacks[i]} `
+		
+		else lines += `${navi.CPattacks[i]} `
+		
+		i++
+	}
+
+	// Actual card
+	return `
+	==================================================
+	Name: ${navi.name}	${navi.core} CORE
+	Level: ${navi.level}
+
+	HP: ${navi.maxHP} / ${navi.HP}	CP: ${navi.maxCP} / ${navi.CP}
+	Current Chips:
+	${lines}
+	==================================================`
+}
+
+/**
  * readJson(fileName)
  * Looks at the current directory, and searches the requested
  * navi json file, (i.e. "naviManDotEXE.json" for example)
@@ -109,7 +161,7 @@ async function uptateNaviStatsInStorage(naviName, json) {
  * */
 async function readJson(fileName) {
 	try {
-		const str = fs.readFileSync('./'+fileName, 'utf8')
+		const str = fs.readFileSync(path.resolve(process.cwd(), fileName), 'utf8')
 		return JSON.parse( str )
 	}
 	catch (e) {
@@ -134,7 +186,7 @@ async function makeJson(json, fileName) {
 
 	const jsonString = JSON.stringify(json, null, '\t')
 
-	fs.writeFile('./'+fileName, jsonString , 'utf8', (e) => {
+	fs.writeFile(path.resolve(process.cwd(), fileName), jsonString , 'utf8', (e) => {
 		if (e) {
 			console.error('An error occurred whilst making the file:\n'+e)
 			process.exit(1)
@@ -175,5 +227,8 @@ module.exports = {
 	isNaviJson,
 	loadNaviIntoStorage,
 	saveNaviFromStorage,
-	uptateNaviStatsInStorage
+	uptateNaviStatsInStorage,
+	getNaviFromStorage,
+	getAllLoadedNavis,
+	getNaviCard
 }

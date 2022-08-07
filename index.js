@@ -27,6 +27,12 @@ async function main() {
 		case 'save':
 			require('./cmds/save')(args)
 			break
+		case 'battle':
+			require('./cmds/battle')(args)
+			break
+		case 'loaded':
+			require('./cmds/loaded')(args)
+			break
 		default:
 			console.error(`"${cmd}" is not a valid command!`)
 			break

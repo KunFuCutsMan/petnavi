@@ -10,6 +10,8 @@ main: `
 	start .............. Start your adventure by making your own navi
 	load ............... Load your navi into the module
 	save ............... Save your navi into a file
+	battle ............. Do a battle!
+	loaded ............. Show the current loaded navis
 
 	COMMON ARGUMENTS:
 	<fileName> ......... File name of navi (i.e. "DefaultNaviDotEXE.json")
@@ -44,7 +46,7 @@ load: `
 	you will save your progress via the 'save' command.
 
 	ARGUMENTS:
-	<fileName> ......... File name of navi`,
+	<fileName> ......... File name of navi (i.e. "DefaultNaviDotEXE.json")`,
 save: `
 	${cmd} save <naviName>
 	
@@ -59,7 +61,23 @@ save: `
 	includes a ".EXE" suffix aswell, so be sure to add that
 
 	ARGUMENTS:
-	<naviName> ......... Navi's name (with .EXE suffix)`
+	<naviName> ......... Navi's name (with .EXE suffix)`,
+battle: `
+	${cmd} battle <naviName>
+
+	Do a battle!
+
+	Prototype command for starting a battle, use one loaded navi
+	to battle a randomly generated battle
+
+	ARGUMENTS:
+	<naviName> ......... Navi's name (with .EXE suffix)`,
+loaded: `
+	${cmd} loaded
+
+	Show the current loaded navis
+
+	And does so with a neat navi card :)`
 }
 
 module.exports = (args) => {
