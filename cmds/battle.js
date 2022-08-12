@@ -1,7 +1,9 @@
 // Imports and Stuff
 const NFM = require('../utils/NaviFileManager')
-const logUpdate = require('log-update')
 const EnemyJson = require('../utils/EnemyList')
+const BattleManager = require('../utils/BattleManager')
+
+const logUpdate = require('log-update')
 const inquirer = require('inquirer')
 
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
@@ -18,8 +20,6 @@ module.exports = async (args) => {
 		process.exit(1)
 	}
 
-	// Load battles (enemies listed in array)
-
 	// While loop of (navi.HP > 0) || enemies.length == 0
 	// Show enemies' stats
 	// Let player decide action
@@ -27,25 +27,23 @@ module.exports = async (args) => {
 	// Enemies attack
 	// Repeat while loop
 
-	// May require a BattleHandler
+	// Enumerate and push enemies
 
 	let enemies = []
-
-	// Enumerate and push enemies
 	for (let i = 0; i < 2; i++) {
-		const x = Object.create(EnemyJson['Mettaur'])
+		const x = EnemyJson('Mettaur')
 		x.name += ''+(i+1)
 		enemies.push(x)
 	}
-	
-	// Main loop
-	while (navi.HP > 0 && enemies.length > 0) {
-		logUpdate( getUI(enemies, navi) )
 
-		// Escape from the loop ASAP I only want testing
-		navi.HP -= 50
+	const Bttl = new BattleManager(navi, enemies)
+
+	// Main loop
+	while ( !Bttl.isBattleOver() ) {
+		console.clear()
+		console.log( getUI( Bttl ) )
 		
-		const answerCore = await inquirer.prompt({
+		const answerAction = await inquirer.prompt({
 			type: 'list',
 			name: 'action',
 			message: 'What will you do?',
@@ -57,24 +55,40 @@ module.exports = async (args) => {
 			pageSize: 5
 		})
 
+		// Choose a target, if any
 		let target = ''
-
-		if (answerCore.action !== 'Defend' && answerCore.action !== 'Escape') {
+		if (answerAction.action !== 'Defend' && answerAction.action !== 'Escape') {
 			const answerTarget = await inquirer.prompt({
 				type: 'list',
 				name: 'target',
 				message: 'Attack Who?',
-				choices: enemies,
+				choices: Bttl.enemyList,
 				loop: true,
 			})
 			target = answerTarget.target
 		}
+
+		// Do actions
+		switch (answerAction.action) {
+			case 'Attack':
+				Bttl.naviAttacks(target)
+				break
+			case 'Cyber Actions':
+				do_something()
+				break
+			case 'Defend':
+				do_something()
+				break
+			case 'Escape':
+				do_something()
+				break
+		}
 	}
 
 	// Check who won
-	if (navi.HP > 0)
+	if (Bttl.navi.HP > 0)
 		console.log('YOU WON')
-	else if (enemies.length > 0)
+	else if (Bttl.enemyList.length > 0)
 		console.log('YOU LOST LOL')
 
 } // end of module
@@ -92,11 +106,17 @@ function getShortNaviUI(navi) {
 	HP: ${navi.HP} / ${navi.maxHP}		CP: ${navi.CP} / ${navi.maxCP}`
 }
 
-function getUI(enemies, navi) {
+function getUI(Bttl) {
+	const enemies = Bttl.enemyList
+	const navi = Bttl.navi
 	return `
 	YOU'RE BATTLING AGAISNT:
 
 ${getEnemyListUI(enemies)}
 	==================================================
 ${getShortNaviUI(navi)}`
+}
+
+function do_something() {
+	logUpdate('Did Something!')
 }
