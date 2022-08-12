@@ -3,7 +3,6 @@ const NFM = require('../utils/NaviFileManager')
 const EnemyJson = require('../utils/EnemyList')
 const BattleManager = require('../utils/BattleManager')
 
-const logUpdate = require('log-update')
 const inquirer = require('inquirer')
 
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
@@ -118,5 +117,5 @@ ${getShortNaviUI(navi)}`
 }
 
 function do_something() {
-	logUpdate('Did Something!')
+	console.log('Did Something!')
 }
