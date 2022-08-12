@@ -35,7 +35,7 @@ module.exports = async (args) => {
 		enemies.push(x)
 	}
 
-	const Bttl = new BattleManager(navi, enemies)
+	const Bttl = new BattleManager(navi, enemies, true)
 
 	// Main loop
 	while ( !Bttl.isBattleOver() ) {
@@ -50,7 +50,7 @@ module.exports = async (args) => {
 			'Attack', 'Cyber Actions',
 			'Defend', new inquirer.Separator() , 'Escape'
 			],
-			loop: false,
+			loop: true,
 			pageSize: 5
 		})
 
@@ -71,21 +71,33 @@ module.exports = async (args) => {
 		switch (answerAction.action) {
 			case 'Attack':
 				Bttl.naviAttacks(target)
+				Bttl.addToActionQueue(Bttl.navi.name+' attacked '+target+'!')
 				break
 			case 'Cyber Actions':
-				do_something()
+				Bttl.addToActionQueue(Bttl.navi.name+' attemted to do an action not yet implemented!')
 				break
 			case 'Defend':
-				do_something()
+				Bttl.addToActionQueue(Bttl.navi.name+' attemted to do an action not yet implemented!')
 				break
 			case 'Escape':
-				do_something()
+				Bttl.addToActionQueue('Attempted to escape...')
+				Bttl.naviEscapes()
 				break
 		}
+
+		// Log what happened
+		for (const str of Bttl.actionQueue) {
+			console.log(str)
+			await sleep(750)
+		}
+		// And reset for next turn
+		Bttl.clearActionQueue()
 	}
 
-	// Check who won
-	if (Bttl.navi.HP > 0)
+	// Check the output of the battle
+	if (Bttl.isEscaped)
+		console.log('YOU ESCAPED')
+	else if (Bttl.navi.HP > 0)
 		console.log('YOU WON')
 	else if (Bttl.enemyList.length > 0)
 		console.log('YOU LOST LOL')
@@ -114,8 +126,4 @@ function getUI(Bttl) {
 ${getEnemyListUI(enemies)}
 	==================================================
 ${getShortNaviUI(navi)}`
-}
-
-function do_something() {
-	console.log('Did Something!')
 }
