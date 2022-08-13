@@ -2,7 +2,7 @@
 	"name": "petnavi",
 	"package-name": "petnavi",
 	"version": "0.3.0",
-	"description": "",
+	"description": "CLI-based RPG game inspired by the Battle Network series, navis are stored as actual files!",
 	"main": "index.js",
 	"bin": {
 		"petnavi": "./index.js"

@@ -6,7 +6,6 @@ main: `
 
 	-v or version ...... Show package version
 	-h or help ......... Show help menu for a command
-	ping ............... Replies with "Pong!"
 	start .............. Start your adventure by making your own navi
 	load ............... Load your navi into the module
 	save ............... Save your navi into a file

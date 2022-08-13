@@ -29,7 +29,7 @@ module.exports = class BattleManager {
 		this.enemyLifeCheck()
 	}
 
-	// "Escape action"
+	// "Escape" action
 	naviEscapes() {
 		if (!this.isPossibleToEscape) {
 			this.addToActionQueue("It's not possible to escape!")
