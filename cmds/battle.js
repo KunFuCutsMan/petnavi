@@ -29,7 +29,7 @@ module.exports = async (args) => {
 	// Enumerate and push enemies
 
 	let enemies = []
-	for (let i = 0; i < 2; i++) {
+	for (let i = 0; i < 3; i++) {
 		const x = EnemyJson('Mettaur')
 		x.name += ''+(i+1)
 		enemies.push(x)
@@ -42,6 +42,7 @@ module.exports = async (args) => {
 		console.clear()
 		console.log( getUI( Bttl ) )
 		
+		// Decide what to do
 		const answerAction = await inquirer.prompt({
 			type: 'list',
 			name: 'action',
@@ -54,6 +55,20 @@ module.exports = async (args) => {
 			pageSize: 5
 		})
 
+		// If "Cyber Action" then decide what chip to use
+		let cpAttack = ''
+		if (answerAction.action === 'Cyber Actions') {
+			const answerCPAttk = await inquirer.prompt({
+				type: 'list',
+				name: 'cpattk',
+				message: 'Choose your Chip:',
+				choices: Bttl.navi.CPattacks,
+				pageSize: 15,
+				loop: true,
+			})
+			cpAttack = answerCPAttk.cpattk
+		}
+
 		// Choose a target, if any
 		let target = ''
 		if (answerAction.action !== 'Defend' && answerAction.action !== 'Escape') {
@@ -62,7 +77,7 @@ module.exports = async (args) => {
 				name: 'target',
 				message: 'Attack Who?',
 				choices: Bttl.enemyList,
-				loop: true,
+				loop: false,
 			})
 			target = answerTarget.target
 		}
@@ -70,14 +85,15 @@ module.exports = async (args) => {
 		// Do actions
 		switch (answerAction.action) {
 			case 'Attack':
-				Bttl.naviAttacks(target)
 				Bttl.addToActionQueue(Bttl.navi.name+' attacked '+target+'!')
+				Bttl.naviAttacks(target)
 				break
 			case 'Cyber Actions':
-				Bttl.addToActionQueue(Bttl.navi.name+' attemted to do an action not yet implemented!')
+				Bttl.addToActionQueue(Bttl.navi.name+' used '+cpAttack+'!')
+				Bttl.naviCyberAttacks(target, cpAttack)
 				break
 			case 'Defend':
-				Bttl.addToActionQueue(Bttl.navi.name+' attemted to do an action not yet implemented!')
+				Bttl.addToActionQueue(Bttl.navi.name+' attempted to do an action not yet implemented!')
 				break
 			case 'Escape':
 				Bttl.addToActionQueue('Attempted to escape...')
