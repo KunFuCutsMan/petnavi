@@ -101,6 +101,11 @@ module.exports = async (args) => {
 				break
 		}
 
+		// If battle isn't escaped let the enemies attack
+		if( !Bttl.isEscaped ) {
+			Bttl.enemiesTurn()
+		}
+
 		// Log what happened
 		for (const str of Bttl.actionQueue) {
 			console.log(str)

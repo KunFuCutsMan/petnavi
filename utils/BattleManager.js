@@ -1,4 +1,5 @@
 const getChipData = require('./AttackInfo.js')
+const getEnemyAttack = require('./EnemyAttacks.js')
 
 module.exports = class BattleManager {
 
@@ -174,6 +175,69 @@ module.exports = class BattleManager {
 
 		if (!this.isEscaped)
 			this.addToActionQueue("...But couldn't!")
+	}
+
+	// Enemies' turn
+	enemiesTurn() {
+		for (const enemy of this.enemyList) {
+			const attk = this.chooseNMEAttack(enemy)
+			
+			// Switch case in case other common actions are added like fleeing
+			switch (attk) {
+				case 'Defend':
+					this.addToActionQueue(enemy.name+' attemtped to defend!')
+					break;
+				default:
+					this.doEnemyAttack(attk, enemy.name)
+			}
+		}
+	}
+
+	chooseNMEAttack(enemy) {
+		let action = ''
+
+		// Get action from secuence if there's one active
+		if (enemy.secuence.length > 0)
+			action = enemy.secuence.shift()
+
+		// Choose action todo (if no secuence)
+		if (!action) {
+			// Choose an index
+			const i = Math.floor( Math.random() * enemy.CPattacks.length )
+			
+			// If its a secuence then copy it to enemy.secuence and use it
+			if ( Array.isArray(enemy.CPattacks[i]) ) {
+				enemy.secuence = enemy.CPattacks[i].map( i => i )
+				action = enemy.secuence.shift()
+			}
+			else
+				action = enemy.CPattacks[i]
+		}
+
+		return action
+	}
+
+	doEnemyAttack(attk, author) {
+		const attack = getEnemyAttack(attk)
+
+		// Check if attack missed
+		const missed =
+				Math.round( Math.random() * attack.missChance * 10 )
+				>= Math.floor( attack.missChance * 10 )
+
+		if (missed) {
+			this.addToActionQueue(author+"'s "+attack.name+' missed '+this.navi.name+'!')
+			return
+		}
+
+		for (let dmg of attack.attackValue) {
+			dmg += this.isItWeakTo(this.navi.core, attack.core) * dmg
+			this.addToActionQueue(
+				author+' dealt '+dmg+' damage to '
+				+this.navi.name+' using '+attack.name+'!')
+			
+			this.navi.HP -= dmg
+		}
 	}
 
 	// Add a string to the turn's queue

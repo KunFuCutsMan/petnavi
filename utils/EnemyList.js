@@ -14,5 +14,6 @@ var json = {
 		'PickAxe',
 		[ 'PickAxe', 'Defend' ]
 		]
+		this.secuence = []
 	}
 }
