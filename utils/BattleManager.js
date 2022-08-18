@@ -1,18 +1,19 @@
 const getChipData = require('./AttackInfo.js')
 const getEnemyAttack = require('./EnemyAttacks.js')
 
+TypeWeaknessJson = {
+	'FIRE': ['WATER', 'WIND'],
+	'WOOD': ['FIRE', 'SWORD'],
+	'ELEC': ['WOOD', 'BREAK'],
+	'AQUA': ['ELEC', 'TARGET'],
+	'SWORD': ['BREAK', 'ELEC'],
+	'WIND': ['SWORD', 'WOOD'],
+	'TARGET': ['WIND', 'FIRE'],
+	'BREAK': ['TARGET', 'WATER']
+}
+
 module.exports = class BattleManager {
 
-	TypeWeaknessJson = {
-		'FIRE': ['WATER', 'WIND'],
-		'WOOD': ['FIRE', 'SWORD'],
-		'ELEC': ['WOOD', 'BREAK'],
-		'AQUA': ['ELEC', 'TARGET'],
-		'SWORD': ['BREAK', 'ELEC'],
-		'WIND': ['SWORD', 'WOOD'],
-		'TARGET': ['WIND', 'FIRE'],
-		'BREAK': ['TARGET', 'WATER']
-	}
 
 	constructor(navi, enemyList, canEscape) {
 		this.navi = navi
@@ -184,9 +185,15 @@ module.exports = class BattleManager {
 			
 			// Switch case in case other common actions are added like fleeing
 			switch (attk) {
+				case 'Nothing':
+					this.addToActionQueue(enemy.name+' did absolutely nothing!')
+					break
 				case 'Defend':
-					this.addToActionQueue(enemy.name+' attemtped to defend!')
+					this.addToActionQueue(enemy.name+' attempted to defend!')
 					break;
+				case 'Dodge':
+					this.addToActionQueue(enemy.name+' attempted to dodge the attack!')
+					break
 				default:
 					this.doEnemyAttack(attk, enemy.name)
 			}
@@ -253,6 +260,9 @@ module.exports = class BattleManager {
 	// minus the enemies which have 0 or less hp
 	enemyLifeCheck() {
 		this.enemyList = this.enemyList.filter( e => {
+			if (e.HP <= 0)
+				this.addToActionQueue(e.name+' was deleted!')
+
 			return e.HP > 0
 		})
 	}
