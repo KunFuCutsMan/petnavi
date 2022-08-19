@@ -19,18 +19,13 @@ module.exports = async (args) => {
 		process.exit(1)
 	}
 
-	// While loop of (navi.HP > 0) || enemies.length == 0
-	// Show enemies' stats
-	// Let player decide action
-	// Actions occur
-	// Enemies attack
-	// Repeat while loop
-
-	// Enumerate and push enemies
-
+	// Randomly get 3 enemies
+	const nmeArray = ['Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']
 	let enemies = []
 	for (let i = 0; i < 3; i++) {
-		const x = EnemyJson('Mettaur')
+		const j = Math.floor( Math.random() * nmeArray.length )
+		console.log(nmeArray[j], j)
+		const x = EnemyJson(nmeArray[j])
 		x.name += ''+(i+1)
 		enemies.push(x)
 	}
