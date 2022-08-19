@@ -107,4 +107,106 @@ var json = {
 		]
 		this.secuence = []
 	},
+	Fishy: function() {
+		this.name = 'Fishy'
+		this.core = 'NEUTRAL'
+		this.maxHP = 90
+		this.HP = 90
+		this.CPattacks = [
+			'Defend',
+			['Dodge', 'DashAttack']
+		]
+		this.secuence = []
+	},
+	Fishi: function() {
+		this.name = 'Fishi'
+		this.core = 'FIRE'
+		this.maxHP = 150
+		this.HP = 150
+		this.CPattacks = [
+			'Dodge',
+			['Dodge', 'BurnDash']
+		]
+		this.secuence = []
+	},
+	Fishii: function() {
+		this.name = 'Fishii'
+		this.core = 'WIND'
+		this.maxHP = 240
+		this.HP = 240
+		this.CPattacks = [
+			'Dodge',
+			['Dodge', 'CondorDash']
+		]
+		this.secuence = []
+	},
+	Spikey: function() {
+		this.name = 'Spikey'
+		this.core = 'FIRE'
+		this.maxHP = 90
+		this.HP = 90
+		this.CPattacks = [
+			'Dodge',
+			['Dodge', 'HeadShot']
+		]
+		this.secuence = []
+	},
+	Spiko: function() {
+		this.name = 'Spiko'
+		this.core = 'FIRE'
+		this.maxHP = 140
+		this.HP = 140
+		this.CPattacks = [
+			'Defend',
+			'HeatV',
+			['Dodge', 'HeatV']
+		]
+		this.secuence = []
+	},
+	Spikus: function() {
+		this.name = 'Spikus'
+		this.core = 'FIRE'
+		this.maxHP = 190
+		this.HP = 190
+		this.CPattacks = [
+			'Defend',
+			'HeatSide',
+			'Dodge',
+			['Dodge', 'HeatSide']
+		]
+		this.secuence = []
+	},
+	Piranha: function() {
+		this.name = 'Piranha'
+		this.core = 'WATER'
+		this.maxHP = 70
+		this.HP = 70
+		this.CPattacks = [
+			'Dodge',
+			['Nothing', 'TriArrow']
+		]
+		this.secuence = []
+	},
+	Piranhas: function() {
+		this.name = 'Piranhas'
+		this.core = 'WATER'
+		this.maxHP = 120
+		this.HP = 120
+		this.CPattacks = [
+			'Dodge',
+			['Nothing', 'TriSpear']
+		]
+		this.secuence = []
+	},
+	Piranhar: function() {
+		this.name = 'Piranhar'
+		this.core = 'WATER'
+		this.maxHP = 150
+		this.HP = 150
+		this.CPattacks = [
+			'Dodge',
+			['Dodge', 'TriLance']
+		]
+		this.secuence = []
+	}
 }

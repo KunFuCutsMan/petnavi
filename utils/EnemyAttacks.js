@@ -80,6 +80,60 @@ let json = {
 		this.attackValue = [150]
 		this.missChance = 1
 	},
+	DashAttack: function() {
+		this.name = 'DashAttack' 
+		this.type = 'NEUTRAL'
+		this.attackValue = [30]
+		this.missChance = 30
+	},
+	BurnDash: function() {
+		this.name = 'BurnDash' 
+		this.type = 'FIRE'
+		this.attackValue = [60]
+		this.missChance = 30
+	},
+	CondorDash: function() {
+		this.name = 'CondorDash' 
+		this.type = 'WIND'
+		this.attackValue = [90]
+		this.missChance = 30
+	},
+	HeatShot: function() {
+		this.name = 'HeatShot' 
+		this.type = 'FIRE'
+		this.attackValue = [30, 5]
+		this.missChance = 25
+	},
+	HeatV: function() {
+		this.name = 'HeatV' 
+		this.type = 'FIRE'
+		this.attackValue = [60, 5, 5]
+		this.missChance = 25
+	},
+	HeatSide: function() {
+		this.name = 'HeatSide' 
+		this.type = 'FIRE'
+		this.attackValue = [90, 5, 5, 5]
+		this.missChance = 25
+	},
+	TriArrow: function() {
+		this.name = 'TriArrow' 
+		this.type = 'WATER'
+		this.attackValue = [20, 20, 20]
+		this.missChance = 20
+	},
+	TriSpear: function() {
+		this.name = 'TriSpear' 
+		this.type = 'WATER'
+		this.attackValue = [40, 40, 40]
+		this.missChance = 20
+	},
+	TriLance: function() {
+		this.name = 'TriLance' 
+		this.type = 'WATER'
+		this.attackValue = [60, 60, 60]
+		this.missChance = 20
+	},
 }
 
 module.exports = function(attk) {
