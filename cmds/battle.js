@@ -93,7 +93,8 @@ module.exports = async (args) => {
 				Bttl.naviCyberAttacks(target, cpAttack)
 				break
 			case 'Defend':
-				Bttl.addToActionQueue(Bttl.navi.name+' attempted to do an action not yet implemented!')
+				Bttl.addToActionQueue(Bttl.navi.name+' defended agaisnt any attacks')
+				Bttl.naviDefends()
 				break
 			case 'Escape':
 				Bttl.addToActionQueue('Attempted to escape...')

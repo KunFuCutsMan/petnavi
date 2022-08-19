@@ -23,6 +23,16 @@ module.exports = class BattleManager {
 		this.isPossibleToEscape = canEscape
 		this.isEscaped = false
 
+		this.isNaviDefending = false
+		this.isNMEDefending = {}
+
+		this.enemyList.forEach( e => {
+			this.isNMEDefending[e.name] = false
+		} )
+		
+		this.naviDefendBonus = 0.2
+		this.enemyDefendBonus = 0.2
+
 		this.actionQueue = []
 	}
 
@@ -55,7 +65,9 @@ module.exports = class BattleManager {
 	// "Attack" action
 	naviAttacks(target) {
 		const enemy = this.getEspecifiedEnemy(target)
-		enemy.HP -= 10
+		
+		enemy.HP -= this.calcEnemyDamage(10, 'NEUTRAL', enemy.name, enemy.core)
+		
 		this.enemyLifeCheck()
 	}
 
@@ -93,8 +105,9 @@ module.exports = class BattleManager {
 		const enemy = this.getEspecifiedEnemy(target)
 
 		// Deal an array of damage to the enemy
-		for (let dmg of chip.attackValue) {
-			dmg += this.isItWeakTo(enemy.core, chip.core) * dmg
+		for (const damage of chip.attackValue) {
+			const dmg = this.calcEnemyDamage(damage, chip.core, enemy.name, enemy.core)
+			
 			this.addToActionQueue(
 				this.navi.name+' dealt '+dmg+' damage to '
 				+target+' using '+chip.name+'!')
@@ -106,42 +119,27 @@ module.exports = class BattleManager {
 	doTripleCP(chip, target) {
 		const enemy = this.getEspecifiedEnemy(target)
 		const nmeIndex = this.enemyList.indexOf(enemy)
+		let j = 0 // Counter for chip.attackValue
 
-		// Attack left enemy of target
-		if (this.enemyList[nmeIndex-1]) {
-			let dmg = chip.attackValue[0]
-			dmg += this.isItWeakTo(this.enemyList[nmeIndex-1].core, chip.core) * dmg
+		// Go from the enemy before to the next one
+		for (let i = nmeIndex-1; i <= nmeIndex+1; i++) {
+			// If theres an enemy on this index
+			if (this.enemyList[i]) {
+				const dmg = this.calcEnemyDamage(
+				chip.attackValue[j], chip.core,
+				this.enemyList[i].name,
+				this.enemyList[i].core)
 
-			this.addToActionQueue(
+				this.addToActionQueue(
 				this.navi.name+' dealt '+dmg+' damage to '
-				+this.enemyList[nmeIndex-1].name+' using '+chip.name+'!')
+				+this.enemyList[i].name+' using '+chip.name+'!')
 
-			this.enemyList[nmeIndex-1].HP -= dmg
+				this.enemyList[i].HP -= dmg
+			}
+
+			j++
 		}
 
-		// Attack target itself
-		if (this.enemyList[nmeIndex]) {
-			let dmg = chip.attackValue[1]
-			dmg += this.isItWeakTo(this.enemyList[nmeIndex].core, chip.core) * dmg
-
-			this.addToActionQueue(
-				this.navi.name+' dealt '+dmg+' damage to '
-				+this.enemyList[nmeIndex].name+' using '+chip.name+'!')
-
-			this.enemyList[nmeIndex].HP -= dmg
-		}
-
-		// Attack right enemy of target
-		if (this.enemyList[nmeIndex+1]) {
-			let dmg = chip.attackValue[2]
-			dmg += this.isItWeakTo(this.enemyList[nmeIndex+1].core, chip.core) * dmg
-
-			this.addToActionQueue(
-				this.navi.name+' dealt '+dmg+' damage to '
-				+this.enemyList[nmeIndex+1].name+' using '+chip.name+'!')
-
-			this.enemyList[nmeIndex+1].HP -= dmg
-		}
 	}
 
 	doUseHealChip(chip) {
@@ -159,6 +157,13 @@ module.exports = class BattleManager {
 		}
 
 		this.navi.HP = newHP
+	}
+
+	// "Defend" action
+	naviDefends() {
+		this.isNaviDefending = true
+		// See doEnemyAttack() to see
+		// What is done with this flag
 	}
 
 	// "Escape" action
@@ -180,6 +185,11 @@ module.exports = class BattleManager {
 
 	// Enemies' turn
 	enemiesTurn() {
+		// Reset every "isNMEDefending" value
+		for (const e in this.isNMEDefending)
+			this.isNMEDefending[e] = false
+
+		// Let each enemy do their action
 		for (const enemy of this.enemyList) {
 			const attk = this.chooseNMEAttack(enemy)
 			
@@ -189,7 +199,8 @@ module.exports = class BattleManager {
 					this.addToActionQueue(enemy.name+' did absolutely nothing!')
 					break
 				case 'Defend':
-					this.addToActionQueue(enemy.name+' attempted to defend!')
+					this.addToActionQueue(enemy.name+' will defend next turn')
+					this.doEnemyDefend(enemy.name)
 					break;
 				case 'Dodge':
 					this.addToActionQueue(enemy.name+' attempted to dodge the attack!')
@@ -198,6 +209,9 @@ module.exports = class BattleManager {
 					this.doEnemyAttack(attk, enemy.name)
 			}
 		}
+
+		// Navi is no longer defending (if they were)
+		this.isNaviDefending = false
 	}
 
 	chooseNMEAttack(enemy) {
@@ -237,14 +251,21 @@ module.exports = class BattleManager {
 			return
 		}
 
-		for (let dmg of attack.attackValue) {
-			dmg += this.isItWeakTo(this.navi.core, attack.core) * dmg
+		// Do damage
+		for (const damage of attack.attackValue) {
+			const dmg = this.calcNaviDamage(damage, attack.type)
+			
 			this.addToActionQueue(
 				author+' dealt '+dmg+' damage to '
 				+this.navi.name+' using '+attack.name+'!')
 			
 			this.navi.HP -= dmg
 		}
+	}
+
+	doEnemyDefend(name) {
+		// Next turn this enemy's damage will be less
+		this.isNMEDefending[name] = true
 	}
 
 	// Add a string to the turn's queue
@@ -265,6 +286,36 @@ module.exports = class BattleManager {
 
 			return e.HP > 0
 		})
+	}
+
+	// Calculate the damage done to the navi
+	// Including factors like weaknesses and defend actions
+	calcNaviDamage(dmg, core) {
+		let total = dmg
+		
+		// Apply weakness value
+		if ( this.isItWeakTo( this.navi.core , core ) )
+			total *= 2
+
+		// Subtract damage if navi defends
+		if ( this.isNaviDefending )
+			total = Math.round( total * (1 - this.naviDefendBonus) )
+
+		return total
+	}
+
+	calcEnemyDamage(dmg, core, enemyName, enemyCore) {
+		let total = dmg
+		
+		// Apply weakness value
+		if ( this.isItWeakTo( enemyCore , core ) )
+			total *= 2
+
+		// Subtract damage if navi defends
+		if ( this.isNMEDefending[enemyName] )
+			total = Math.round( total * (1 - this.enemyDefendBonus) )
+
+		return total
 	}
 
 }
