@@ -94,7 +94,7 @@ module.exports = class BattleManager {
 		enemy.HP -= this.calcEnemyDamage(10, 'NEUTRAL', enemy.name, enemy.core)
 
 		// Reset avoids
-		for (const e in this.this.isNMEAvoiding)
+		for (let e in this.isNMEAvoiding)
 			e = false
 		
 		this.enemyLifeCheck()
@@ -136,7 +136,7 @@ module.exports = class BattleManager {
 		}
 
 		// Reset avoids
-		for (const e in this.this.isNMEAvoiding)
+		for (let e in this.isNMEAvoiding)
 			e = false
 
 		// update stuff
