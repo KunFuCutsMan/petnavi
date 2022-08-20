@@ -14,8 +14,8 @@ module.exports = async (args) => {
 	if ( NFM.isNaviJson(json) ) {
 		await NFM.loadNaviIntoStorage(json)
 		console.log(`
-		Navi Loaded!
-		Be sure to interact with your navi's name, "${json.name}"!`)
+	Navi Loaded!
+	Be sure to interact with your navi's name, "${json.name}"!`)
 	}
 	else console.warn('File is not a navi json')
 }
