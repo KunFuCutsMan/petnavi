@@ -10,7 +10,7 @@ const STORAGE_SETTINGS = {
 	parse: JSON.parse,
 	encoding: 'utf8',
 	logging: false,
-	ttl: true,
+	ttl: false,
 	expiredInterval: 2 * 60 * 1000,
 	forgiveParseErrors: true
 }

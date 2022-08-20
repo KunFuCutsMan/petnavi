@@ -23,15 +23,30 @@ module.exports = class BattleManager {
 		this.isPossibleToEscape = canEscape
 		this.isEscaped = false
 
+		// Defend flags
 		this.isNaviDefending = false
 		this.isNMEDefending = {}
 
 		this.enemyList.forEach( e => {
 			this.isNMEDefending[e.name] = false
 		} )
+
+		// Avoid flags
+		this.enemyAvoidBonus = 0.4
+		this.isNMEAvoiding = {}
+		this.enemyList.forEach( e => {
+			this.isNMEAvoiding[e.name] = false
+		} )
+
+		// Flee flags
+		this.escapePercent = 0.2
 		
+		// How much will everyone defend from an attack
 		this.naviDefendBonus = 0.2
 		this.enemyDefendBonus = 0.2
+
+		// Navis can recover 20% of their CP
+		this.CPrecoveryBonus = Math.ceil(this.navi.maxCP / 5)
 
 		this.actionQueue = []
 	}
@@ -65,8 +80,22 @@ module.exports = class BattleManager {
 	// "Attack" action
 	naviAttacks(target) {
 		const enemy = this.getEspecifiedEnemy(target)
+
+		// check if the target will avoid the attack
+		if (this.isNMEAvoiding[target]) {
+			const missed = this.calcRandomBool(this.enemyAvoidBonus)
+
+			if (missed) {
+				this.addToActionQueue("But "+target+" avoided the attack!")
+				return
+			}
+		}
 		
 		enemy.HP -= this.calcEnemyDamage(10, 'NEUTRAL', enemy.name, enemy.core)
+
+		// Reset avoids
+		for (const e in this.this.isNMEAvoiding)
+			e = false
 		
 		this.enemyLifeCheck()
 	}
@@ -82,6 +111,16 @@ module.exports = class BattleManager {
 			return
 		}
 
+		// check if the target will avoid the attack
+		if (this.isNMEAvoiding[target]) {
+			const missed = this.calcRandomBool(this.enemyAvoidBonus)
+
+			if (missed) {
+				this.addToActionQueue("But "+target+" avoided the attack!")
+				return
+			}
+		}
+
 		// check chip's target type
 		// do damage to corresponding targets
 		switch (chip.target) {
@@ -95,6 +134,10 @@ module.exports = class BattleManager {
 				this.doUseHealChip(chip)
 				break
 		}
+
+		// Reset avoids
+		for (const e in this.this.isNMEAvoiding)
+			e = false
 
 		// update stuff
 		this.navi.CP = tmpCPafterUse
@@ -161,9 +204,20 @@ module.exports = class BattleManager {
 
 	// "Defend" action
 	naviDefends() {
+		// See doEnemyAttack() to see what is done with this flag
 		this.isNaviDefending = true
-		// See doEnemyAttack() to see
-		// What is done with this flag
+
+		// Recover some CP
+		const newCP = this.navi.CP + this.CPrecoveryBonus
+
+		if (newCP >= this.navi.maxCP) {
+			this.addToActionQueue(this.navi.name+' recovered all of their CP')
+			this.navi.CP = this.navi.maxCP
+		}
+		else {
+			this.addToActionQueue(this.navi.name+' recovered some of their CP')
+			this.navi.CP = newCP
+		}
 	}
 
 	// "Escape" action
@@ -174,11 +228,8 @@ module.exports = class BattleManager {
 		}
 
 		// Randomly assign if navi was able to escape
-		const EscapePercent = 1/5
-		this.isEscaped =
-			Math.round( Math.random() * EscapePercent * 10 )
-			>= Math.floor( EscapePercent * 10 )
-
+		this.isEscaped = this.calcRandomBool(this.escapePercent)
+		
 		if (!this.isEscaped)
 			this.addToActionQueue("...But couldn't!")
 	}
@@ -203,7 +254,8 @@ module.exports = class BattleManager {
 					this.doEnemyDefend(enemy.name)
 					break;
 				case 'Dodge':
-					this.addToActionQueue(enemy.name+' attempted to dodge the attack!')
+					this.addToActionQueue(enemy.name+" will attempt to dodge the next turn's attack")
+					this.doEnemyDodge(enemy.name)
 					break
 				default:
 					this.doEnemyAttack(attk, enemy.name)
@@ -242,9 +294,7 @@ module.exports = class BattleManager {
 		const attack = getEnemyAttack(attk)
 
 		// Check if attack missed
-		const missed =
-				Math.round( Math.random() * attack.missChance * 10 )
-				>= Math.floor( attack.missChance * 10 )
+		const missed = this.calcRandomBool(attack.missChance)
 
 		if (missed) {
 			this.addToActionQueue(author+"'s "+attack.name+' missed '+this.navi.name+'!')
@@ -266,6 +316,11 @@ module.exports = class BattleManager {
 	doEnemyDefend(name) {
 		// Next turn this enemy's damage will be less
 		this.isNMEDefending[name] = true
+	}
+
+	doEnemyDodge(name) {
+		// Next turn this enemy may avoid the attack
+		this.isNMEAvoiding[name] = true
 	}
 
 	// Add a string to the turn's queue
@@ -316,6 +371,12 @@ module.exports = class BattleManager {
 			total = Math.round( total * (1 - this.enemyDefendBonus) )
 
 		return total
+	}
+
+	// Based on a float value between 0 and 1 return a random boolean
+	calcRandomBool(float) {
+		return Math.round( Math.random() * float * 10 )
+				>= Math.floor( float * 10 )
 	}
 
 }
