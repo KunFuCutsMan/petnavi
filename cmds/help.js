@@ -67,7 +67,17 @@ battle: `
 	Do a battle!
 
 	Prototype command for starting a battle, use one loaded navi
-	to battle a randomly generated battle
+	to battle a randomly generated battle agaisnt 3 enemies.
+
+	On your turn, you can do one of 4 actions:
+	- Attack with your buster ( only deal 10 NEUTRAL type damage )
+	- Use a Cyber Chip ( if you have enough CP to use it )
+	- Defend agaisnt incoming attacks ( and recover some of your CP )
+	- Escape the battle
+
+	After you decide what to do, its the enemies's turn!
+	Each enemy has its own patterns and guidelines for attacking you,
+	while others will attack with no discernable pattern.
 
 	ARGUMENTS:
 	<naviName> ......... Navi's name (with .EXE suffix)`,
