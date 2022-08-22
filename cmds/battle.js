@@ -24,7 +24,6 @@ module.exports = async (args) => {
 	let enemies = []
 	for (let i = 0; i < 3; i++) {
 		const j = Math.floor( Math.random() * nmeArray.length )
-		console.log(nmeArray[j], j)
 		const x = EnemyJson(nmeArray[j])
 		x.name += ''+(i+1)
 		enemies.push(x)
@@ -71,7 +70,7 @@ module.exports = async (args) => {
 				type: 'list',
 				name: 'target',
 				message: 'Attack Who?',
-				choices: Bttl.enemyList,
+				choices: Bttl.enemyList.filter( i => i !== Bttl.EMPTY_SPACE),
 				loop: false,
 			})
 			target = answerTarget.target
@@ -112,19 +111,26 @@ module.exports = async (args) => {
 	}
 
 	// Check the output of the battle
-	if (Bttl.isEscaped)
-		console.log('YOU ESCAPED')
-	else if (Bttl.navi.HP > 0)
-		console.log('YOU WON')
-	else if (Bttl.enemyList.length > 0)
-		console.log('YOU LOST LOL')
+	switch ( Bttl.getOutcomeOfBattle() ) {
+		case 'ESCAPED':
+			console.log("You've succesfully escaped the battle")
+			break
+		case 'WON':
+			console.log("You've won!")
+			break
+		case 'LOST':
+			console.log("You lost lol")
+			break
+	}
 
 } // end of module
 
-function getEnemyListUI(eList) {
+function getEnemyListUI(eList, empty) {
 	let str = ''
 	for (const e of eList)
-		str += '\t'+e.name + '\t\t HP: '+e.HP+' / '+e.maxHP+'\n'
+		if (e === empty)
+			str += '\t'+empty+'\n'
+		else str += '\t'+e.name + '\t\t HP: '+e.HP+' / '+e.maxHP+'\n'
 	return str
 }
 
@@ -140,7 +146,7 @@ function getUI(Bttl) {
 	return `
 	YOU'RE BATTLING AGAISNT:
 
-${getEnemyListUI(enemies)}
+${getEnemyListUI(enemies, Bttl.EMPTY_SPACE)}
 	==================================================
 ${getShortNaviUI(navi)}`
 }

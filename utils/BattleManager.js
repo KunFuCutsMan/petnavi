@@ -14,6 +14,18 @@ TypeWeaknessJson = {
 
 module.exports = class BattleManager {
 
+	// Indicator to show an empty space
+	EMPTY_SPACE = '[\t]'
+
+	// Chance for the enemy to avoid the attack
+	enemyAvoidBonus = 0.4
+	
+	// How likely are you able to escape
+	escapePercent = 0.2
+	
+	// How much will everyone defend from an attack
+	naviDefendBonus = 0.2
+	enemyDefendBonus = 0.2
 
 	constructor(navi, enemyList, canEscape) {
 		this.navi = navi
@@ -32,18 +44,11 @@ module.exports = class BattleManager {
 		} )
 
 		// Avoid flags
-		this.enemyAvoidBonus = 0.4
 		this.isNMEAvoiding = {}
 		this.enemyList.forEach( e => {
 			this.isNMEAvoiding[e.name] = false
 		} )
 
-		// Flee flags
-		this.escapePercent = 0.2
-		
-		// How much will everyone defend from an attack
-		this.naviDefendBonus = 0.2
-		this.enemyDefendBonus = 0.2
 
 		// Navis can recover 20% of their CP
 		this.CPrecoveryBonus = Math.ceil(this.navi.maxCP / 5)
@@ -58,12 +63,22 @@ module.exports = class BattleManager {
 		} )
 	}
 
+	// Get the outcome of the battle
+	getOutcomeOfBattle() {
+		if (this.isEscaped)
+			return 'ESCAPED'
+		else if (this.navi.HP <= 0)
+			return 'LOST'
+		else if (this.enemyList.every( e => e === this.EMPTY_SPACE ))
+			return 'WON'
+	}
+
 	isBattleOver() {
 		if ( this.isEscaped ) // Player escaped
 			return true
 		else if ( this.navi.HP <= 0 ) // Player lost
 			return true
-		else if ( this.enemyList.length <= 0 ) // Player won
+		else if ( this.enemyList.every( e => e === this.EMPTY_SPACE) ) // Player won
 			return true
 		else return false
 	}
@@ -167,7 +182,7 @@ module.exports = class BattleManager {
 		// Go from the enemy before to the next one
 		for (let i = nmeIndex-1; i <= nmeIndex+1; i++) {
 			// If theres an enemy on this index
-			if (this.enemyList[i]) {
+			if (this.enemyList[i] && this.enemyList[i] !== this.EMPTY_SPACE) {
 				const dmg = this.calcEnemyDamage(
 				chip.attackValue[j], chip.core,
 				this.enemyList[i].name,
@@ -242,6 +257,11 @@ module.exports = class BattleManager {
 
 		// Let each enemy do their action
 		for (const enemy of this.enemyList) {
+
+			// ..As long as they're not an EMPTY_SPACE
+			if (enemy === this.EMPTY_SPACE)
+				continue
+
 			const attk = this.chooseNMEAttack(enemy)
 			
 			// Switch case in case other common actions are added like fleeing
@@ -335,12 +355,14 @@ module.exports = class BattleManager {
 	// this.enemyList is modified to its normal state
 	// minus the enemies which have 0 or less hp
 	enemyLifeCheck() {
-		this.enemyList = this.enemyList.filter( e => {
-			if (e.HP <= 0)
-				this.addToActionQueue(e.name+' was deleted!')
+		this.enemyList.forEach( e => {
+			if (e.HP <= 0) {
+				this.addToActionQueue(e.name +' was deleted!')
+				const index = this.enemyList.findIndex(i => i.name === e.name)
 
-			return e.HP > 0
-		})
+				this.enemyList.splice(index, 1, this.EMPTY_SPACE)
+			}
+		} )
 	}
 
 	// Calculate the damage done to the navi

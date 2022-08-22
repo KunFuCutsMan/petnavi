@@ -10,9 +10,11 @@
 			//		array shows how damage is dealt left to right, target being middle
 			// * 'Self': For masochists only (apply as 'Single') target type
 			// * 'Heal': What it says on the string
-			// * 'Column': Attacks the target's lane, attackValue shows how damage is dealt
-			// * 	front to back
+			// * 'Left': Attacks the target + enemy to the left of the target
+			// * 'Right': Attacks the target + enemy to the right of target
+			// * 'Everyone': Attacks the entire enemy array, handle each target as 'Single' target type
 			target: 'Single',
+			// * 'React': Will only attack only those enemies who attack first
 			// ATTACKVALUE: Array showing what value the attack is made
 			// its behavior changes according to how 'target' value is set to
 			attackValue: [80]
@@ -27,7 +29,7 @@ var json = {
 	Cannon: function() {
 		this.name = 'Cannon'
 		this.type = 'NEUTRAL'
-		this.cpCost = 5
+		this.cpCost = 3
 		this.target = 'Single'
 		this.attackValue = [40]
 	},
@@ -40,9 +42,9 @@ var json = {
 	},
 	Sword: function() {
 		this.name = 'Sword'
-		this.type = 'SWORD',
-		this.cpCost = 8,
-		this.target = 'Single',
+		this.type = 'SWORD'
+		this.cpCost = 8
+		this.target = 'Single'
 		this.attackValue = [80]
 	},
 	WideSword: function() {
@@ -69,15 +71,15 @@ var json = {
 	Pickaxe: function() {
 		this.name = 'Pickaxe'
 		this.type = 'NEUTRAL'
-		this.cpCost = 3
-		this.target = 'Column'
+		this.cpCost = 4
+		this.target = 'Single'
 		this.attackValue = [60]
 	},
 	MetGuard: function() {
 		this.name = 'MetGuard'
 		this.type = 'NEUTRAL'
 		this.cpCost = 3
-		this.target = 'Column'
+		this.target = 'React'
 		this.attackValue = [50]
 	}
 }
