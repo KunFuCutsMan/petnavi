@@ -31,8 +31,8 @@ const NAVI_TEMPLATE = {
 		"Sword",
 		"WideSword",
 		"AirShot",
-		"HP10",
-		"HP10",
+		"HP30",
+		"HP30",
 	]
 }
 
@@ -91,11 +91,11 @@ async function saveNaviFromStorage(naviName) {
 }
 
 /**
- * uptateNaviStatsInStorage(naviName, json)
+ * updateNaviStatsInStorage(naviName, json)
  * Updates the current navi provided in 'naviName' to the
  * json provided in 'json'
  * */
-async function uptateNaviStatsInStorage(naviName, json) {
+async function updateNaviStatsInStorage(naviName, json) {
 	await storage.init(STORAGE_SETTINGS)
 
 	await storage.updateItem(naviName, json)
@@ -220,15 +220,16 @@ async function makeNewNavi(name, lvl, core) {
 
 // Navi File Manager (or NFM) is an object containing
 // async functions that can be used to read navi files
-module.exports = {
-	readJson,
-	makeJson,
-	makeNewNavi,
-	isNaviJson,
-	loadNaviIntoStorage,
-	saveNaviFromStorage,
-	uptateNaviStatsInStorage,
-	getNaviFromStorage,
-	getAllLoadedNavis,
-	getNaviCard
+function NaviFileManager() {
+	this.readJson = readJson
+	this.makeJson = makeJson
+	this.makeNewNavi = makeNewNavi
+	this.isNaviJson = isNaviJson
+	this.loadNaviIntoStorage = loadNaviIntoStorage
+	this.saveNaviFromStorage = saveNaviFromStorage
+	this.updateNaviStatsInStorage = updateNaviStatsInStorage
+	this.getNaviFromStorage = getNaviFromStorage
+	this.getAllLoadedNavis = getAllLoadedNavis
+	this.getNaviCard = getNaviCard
 }
+module.exports = new NaviFileManager()

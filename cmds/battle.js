@@ -106,6 +106,11 @@ module.exports = async (args) => {
 			console.log(str)
 			await sleep(750)
 		}
+
+		// Let the player read what happened
+		if ( !Bttl.isBattleOver() )
+			await sleep(1500)
+
 		// And reset for next turn
 		Bttl.clearActionQueue()
 	}

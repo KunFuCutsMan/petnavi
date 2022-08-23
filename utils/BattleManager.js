@@ -164,7 +164,7 @@ module.exports = class BattleManager {
 
 		// Deal an array of damage to the enemy
 		for (const damage of chip.attackValue) {
-			const dmg = this.calcEnemyDamage(damage, chip.core, enemy.name, enemy.core)
+			const dmg = this.calcEnemyDamage(damage, chip.type, enemy.name, enemy.core)
 			
 			this.addToActionQueue(
 				this.navi.name+' dealt '+dmg+' damage to '
@@ -184,7 +184,7 @@ module.exports = class BattleManager {
 			// If theres an enemy on this index
 			if (this.enemyList[i] && this.enemyList[i] !== this.EMPTY_SPACE) {
 				const dmg = this.calcEnemyDamage(
-				chip.attackValue[j], chip.core,
+				chip.attackValue[j], chip.type,
 				this.enemyList[i].name,
 				this.enemyList[i].core)
 
@@ -211,7 +211,7 @@ module.exports = class BattleManager {
 		}
 		else {
 			this.addToActionQueue(
-				this.navi.name+' recovered '+chip.attackValue[0]+ 'HP')
+				this.navi.name+' recovered '+chip.attackValue[0]+ ' HP')
 		}
 
 		this.navi.HP = newHP

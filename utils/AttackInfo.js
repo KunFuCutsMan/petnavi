@@ -54,19 +54,19 @@ var json = {
 		this.target = 'Triple'
 		this.attackValue = [80, 80, 80]
 	},
-	Airshot: function() {
-		this.name = 'Airshot'
+	AirShot: function() {
+		this.name = 'AirShot'
 		this.type = 'WIND'
 		this.cpCost = 3
 		this.target = 'Single'
 		this.attackValue = [20]
 	},
-	HP10: function() {
+	HP30: function() {
 		this.name = 'HP10'
 		this.type = 'NEUTRAL'
 		this.cpCost = 3
 		this.target = 'Heal'
-		this.attackValue = [10]
+		this.attackValue = [30]
 	},
 	Pickaxe: function() {
 		this.name = 'Pickaxe'

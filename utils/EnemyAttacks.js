@@ -120,19 +120,19 @@ let json = {
 		this.name = 'TriArrow' 
 		this.type = 'AQUA'
 		this.attackValue = [20, 20, 20]
-		this.missChance = 20
+		this.missChance = 40
 	},
 	TriSpear: function() {
 		this.name = 'TriSpear' 
 		this.type = 'AQUA'
 		this.attackValue = [40, 40, 40]
-		this.missChance = 20
+		this.missChance = 40
 	},
 	TriLance: function() {
 		this.name = 'TriLance' 
 		this.type = 'AQUA'
 		this.attackValue = [60, 60, 60]
-		this.missChance = 20
+		this.missChance = 40
 	},
 }
 
