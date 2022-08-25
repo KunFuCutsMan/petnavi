@@ -1,9 +1,6 @@
 const attackInfo = require('./AttackInfo.js')
 const getEnemyAttack = require('./EnemyAttacks.js')
-const BattleUI = require('./BattleUI')
-const UI = new BattleUI('[\t]')
-
-const inquirer = require('inquirer')
+const UI = new ( require('./BattleUI') )( '[\t]' )
 
 TypeWeaknessJson = {
 	'FIRE': ['WATER', 'WIND'],
@@ -62,61 +59,31 @@ module.exports = class BattleManager {
 
 	async mainLoop() {
 		while ( !this.isBattleOver() ) {
+			// Clean the screen
 			console.clear()
-
 			UI.resetUI()
 			console.log( UI.getBattleUI(this.navi, this.enemyList) )
 			
 			// Decide what to do
-			const answerAction = await inquirer.prompt({
-				type: 'list',
-				name: 'a',
-				message: 'What will you do?',
-				choices: [
-				'Attack', 'Cyber Actions',
-				'Defend', new inquirer.Separator() , 'Escape'
-				],
-				loop: true,
-				pageSize: 5
-			})
-
-			// If "Cyber Action" then decide what chip to use
+			const action = await UI.askActionPrompt()
+			
 			let cpAttack = ''
 			let chip = {}
-			
-			if (answerAction.a === 'Cyber Actions') {
-				const answerCPAttk = await inquirer.prompt({
-					type: 'list',
-					name: 'cpattk',
-					message: 'Choose your Chip:',
-					choices: this.navi.CPattacks,
-					pageSize: 15,
-					loop: true,
-				})
-				cpAttack = answerCPAttk.cpattk
+			let target = ''
 
+			// If "Cyber Actions" then decide what chip to use
+			if (action === 'Cyber Actions') {
+				cpAttack = await UI.askChooseChip(this.navi.CPattacks)
 				chip = this.getChipData(cpAttack)
 			}
 
 			// Choose a target, if any
-			let target = ''
-
 			// chip.canTarget will only work if cyber actions was chosen
-			const targetIsRequired = answerAction.a === 'Attack' || chip.canTarget
-
-			if ( targetIsRequired ) {
-				const answerTarget = await inquirer.prompt({
-					type: 'list',
-					name: 'target',
-					message: 'Attack Who?',
-					choices: this.enemyList.filter( i => i !== this.EMPTY_SPACE),
-					loop: false,
-				})
-				target = answerTarget.target
-			}
+			if ( action === 'Attack' || chip.canTarget )
+				target = await UI.askTarget(this.enemyList)
 
 			// Do actions
-			switch (answerAction.a) {
+			switch (action) {
 				case 'Attack':
 					this.addToActionQueue(this.navi.name+' attacked '+target+'!')
 					this.naviAttacks(target)

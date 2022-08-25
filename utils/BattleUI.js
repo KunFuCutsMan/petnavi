@@ -1,10 +1,54 @@
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
+const inquirer = require('inquirer')
+
+/**
+ * BattleUI will handle anything visual from the BattleManager
+ * including question handling
+*/
 module.exports = class BattleUI {
 
 	constructor( empty ) {
 		this.ui = require('cliui')({ width: 60 })
 		this.EMPTY_SPACE = empty
+	}
+
+	async askActionPrompt() {
+		const answerAction = await inquirer.prompt({
+			type: 'list',
+			name: 'action',
+			message: 'What will you do?',
+			choices: [
+			'Attack', 'Cyber Actions',
+			'Defend', new inquirer.Separator() , 'Escape'
+			],
+			loop: true,
+			pageSize: 5
+		})
+		return answerAction.action
+	}
+
+	async askChooseChip(CPattacks) {
+		const answerCPAttk = await inquirer.prompt({
+			type: 'list',
+			name: 'cpattk',
+			message: 'Choose your Chip:',
+			choices: CPattacks,
+			pageSize: 15,
+			loop: true,
+		})
+		return answerCPAttk.cpattk
+	}
+
+	async askTarget(eList) {
+		const answerTarget = await inquirer.prompt({
+			type: 'list',
+			name: 'target',
+			message: 'Attack Who?',
+			choices: eList.filter( i => i !== this.EMPTY_SPACE),
+			loop: false,
+		})
+		return answerTarget.target
 	}
 
 	async logActionQueue(aq, isOver) {

@@ -4,8 +4,6 @@ const EnemyJson = require('../utils/EnemyList')
 const BattleManager = require('../utils/BattleManager')
 const BattleUI = require('../utils/BattleUI')
 
-const inquirer = require('inquirer')
-
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 module.exports = async (args) => {
