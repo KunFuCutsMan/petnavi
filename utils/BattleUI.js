@@ -1,8 +1,21 @@
+const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
+
 module.exports = class BattleUI {
 
 	constructor( empty ) {
 		this.ui = require('cliui')({ width: 60 })
 		this.EMPTY_SPACE = empty
+	}
+
+	async logActionQueue(aq, isOver) {
+		for (const str of aq) {
+			console.log('> '+str)
+			await sleep(750)
+		}
+
+		// Let the player read what happened
+		if ( !isOver )
+			await sleep(1500)
 	}
 
 	addVoid() {
