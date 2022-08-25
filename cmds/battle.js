@@ -2,6 +2,7 @@
 const NFM = require('../utils/NaviFileManager')
 const EnemyJson = require('../utils/EnemyList')
 const BattleManager = require('../utils/BattleManager')
+const BattleUI = require('../utils/BattleUI')
 
 const inquirer = require('inquirer')
 
@@ -30,16 +31,19 @@ module.exports = async (args) => {
 	}
 
 	const Bttl = new BattleManager(navi, enemies, true)
+	const UI = new BattleUI( Bttl.EMPTY_SPACE )
 
 	// Main loop
 	while ( !Bttl.isBattleOver() ) {
 		console.clear()
-		console.log( getUI( Bttl ) )
+
+		UI.resetUI()
+		console.log( UI.getBattleUI(Bttl.navi, Bttl.enemyList) )
 		
 		// Decide what to do
 		const answerAction = await inquirer.prompt({
 			type: 'list',
-			name: 'action',
+			name: 'a',
 			message: 'What will you do?',
 			choices: [
 			'Attack', 'Cyber Actions',
@@ -51,7 +55,9 @@ module.exports = async (args) => {
 
 		// If "Cyber Action" then decide what chip to use
 		let cpAttack = ''
-		if (answerAction.action === 'Cyber Actions') {
+		let chip = {}
+		
+		if (answerAction.a === 'Cyber Actions') {
 			const answerCPAttk = await inquirer.prompt({
 				type: 'list',
 				name: 'cpattk',
@@ -61,11 +67,17 @@ module.exports = async (args) => {
 				loop: true,
 			})
 			cpAttack = answerCPAttk.cpattk
+
+			chip = Bttl.getChipData(cpAttack)
 		}
 
 		// Choose a target, if any
 		let target = ''
-		if (answerAction.action !== 'Defend' && answerAction.action !== 'Escape') {
+
+		// chip.canTarget will only work if cyber actions was chosen
+		const targetIsRequired = answerAction.a === 'Attack' || chip.canTarget
+
+		if ( targetIsRequired ) {
 			const answerTarget = await inquirer.prompt({
 				type: 'list',
 				name: 'target',
@@ -77,7 +89,7 @@ module.exports = async (args) => {
 		}
 
 		// Do actions
-		switch (answerAction.action) {
+		switch (answerAction.a) {
 			case 'Attack':
 				Bttl.addToActionQueue(Bttl.navi.name+' attacked '+target+'!')
 				Bttl.naviAttacks(target)
@@ -130,28 +142,3 @@ module.exports = async (args) => {
 
 } // end of module
 
-function getEnemyListUI(eList, empty) {
-	let str = ''
-	for (const e of eList)
-		if (e === empty)
-			str += '\t'+empty+'\n'
-		else str += '\t'+e.name + '\t\t HP: '+e.HP+' / '+e.maxHP+'\n'
-	return str
-}
-
-function getShortNaviUI(navi) {
-	return `
-	${navi.name}		${navi.core}
-	HP: ${navi.HP} / ${navi.maxHP}		CP: ${navi.CP} / ${navi.maxCP}`
-}
-
-function getUI(Bttl) {
-	const enemies = Bttl.enemyList
-	const navi = Bttl.navi
-	return `
-	YOU'RE BATTLING AGAISNT:
-
-${getEnemyListUI(enemies, Bttl.EMPTY_SPACE)}
-	==================================================
-${getShortNaviUI(navi)}`
-}

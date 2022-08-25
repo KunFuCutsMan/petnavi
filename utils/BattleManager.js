@@ -1,4 +1,4 @@
-const getChipData = require('./AttackInfo.js')
+const attackInfo = require('./AttackInfo.js')
 const getEnemyAttack = require('./EnemyAttacks.js')
 
 TypeWeaknessJson = {
@@ -63,6 +63,14 @@ module.exports = class BattleManager {
 		} )
 	}
 
+	getChipData(name) {
+		const chip = attackInfo(name)
+
+		if (chip)
+			return chip
+		else return {}
+	}
+
 	// Get the outcome of the battle
 	getOutcomeOfBattle() {
 		if (this.isEscaped)
@@ -117,7 +125,7 @@ module.exports = class BattleManager {
 
 	// "Cyber Actions" attack
 	naviCyberAttacks(target, cpAttack) {
-		const chip = getChipData(cpAttack)
+		const chip = this.getChipData(cpAttack)
 
 		// check if chip is usable
 		const tmpCPafterUse = this.navi.CP - chip.cpCost
