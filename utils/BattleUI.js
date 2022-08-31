@@ -117,4 +117,9 @@ module.exports = class BattleUI {
 	resetUI() {
 		this.ui.resetOutput()
 	}
+
+	resetScreen() {
+		this.resetUI()
+		console.clear()
+	}
 }

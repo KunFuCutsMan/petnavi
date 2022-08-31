@@ -18,18 +18,16 @@ module.exports = async (args) => {
 		process.exit(1)
 	}
 
-	// Randomly get 3 enemies
+	// Randomly get 1 - 5 enemy names from the array
 	const nmeArray = ['Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']
+	
 	let enemies = []
-	for (let i = 0; i < 3; i++) {
+	for (let i = 0; i < Math.ceil( Math.random() * 5 ); i++) {
 		const j = Math.floor( Math.random() * nmeArray.length )
-		const x = EnemyJson(nmeArray[j])
-		x.name += ''+(i+1)
-		enemies.push(x)
+		enemies.push(nmeArray[j])
 	}
 
 	const Bttl = new BattleManager(navi, enemies, true)
-	const UI = new BattleUI( Bttl.EMPTY_SPACE )
 
 	// Main loop
 	await Bttl.mainLoop()

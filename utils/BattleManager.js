@@ -1,5 +1,6 @@
 const attackInfo = require('./AttackInfo.js')
 const getEnemyAttack = require('./EnemyAttacks.js')
+const EnemyJson = require('../utils/EnemyList')
 const UI = new ( require('./BattleUI') )( '[\t]' )
 
 TypeWeaknessJson = {
@@ -25,12 +26,12 @@ module.exports = class BattleManager {
 	escapePercent = 0.2
 	
 	// How much will everyone defend from an attack
-	naviDefendBonus = 0.2
+	naviDefendBonus = 0.3
 	enemyDefendBonus = 0.2
 
 	constructor(navi, enemyList, canEscape) {
 		this.navi = navi
-		this.enemyList = enemyList
+		this.enemyList = BattleManager.getEnemies(enemyList)
 
 		// Setting up for being able to escape
 		this.isPossibleToEscape = canEscape
@@ -57,11 +58,39 @@ module.exports = class BattleManager {
 		this.actionQueue = []
 	}
 
+	// Gets an array of enemy names, returns an array of said enemies
+	static getEnemies(enemyList) {
+		let list = []
+		let enemyCount = {} // Object that will be used to count enemies
+
+		for (const name of enemyList) {
+			// Find the enemy especified
+			const e = EnemyJson(name)
+
+			// And skip to the next name if it doesn't exist
+			if (!e)
+				continue
+
+			// Increase the count of that enemy's occurances
+			if (enemyCount[name] === undefined)
+				enemyCount[name] = 1
+			else enemyCount[name]++
+
+			// Add the number if there's another enemy
+			if (enemyCount[name] > 1)
+				e.name += enemyCount[name]
+
+			list.push(e)
+		}
+
+		return list
+	}
+
+	// Loop as seen previously in battle.js
 	async mainLoop() {
 		while ( !this.isBattleOver() ) {
 			// Clean the screen
-			console.clear()
-			UI.resetUI()
+			UI.resetScreen()
 			console.log( UI.getBattleUI(this.navi, this.enemyList) )
 			
 			// Decide what to do
@@ -121,6 +150,7 @@ module.exports = class BattleManager {
 		} )
 	}
 
+	// Get the data of the chip based on the name provided
 	getChipData(name) {
 		const chip = attackInfo(name)
 
@@ -139,6 +169,7 @@ module.exports = class BattleManager {
 			return 'WON'
 	}
 
+	// Either if the battle was escaped from, navi has no HP, or enemies are EMPTY_SPACE
 	isBattleOver() {
 		if ( this.isEscaped ) // Player escaped
 			return true
@@ -149,11 +180,12 @@ module.exports = class BattleManager {
 		else return false
 	}
 
-	isItWeakTo( victimCore, weakCore ) {
+	// Is [victimCore] weak to [dmgCore] ?
+	isItWeakTo( victimCore, dmgCore ) {
 		let flag = false
 		
-		if (weakCore !== 'NEUTRAL' && victimCore !== 'NEUTRAL')
-			flag = TypeWeaknessJson[victimCore].includes(weakCore)
+		if (victimCore !== 'NEUTRAL' && dmgCore !== 'NEUTRAL')
+			flag = TypeWeaknessJson[victimCore].includes(dmgCore)
 		
 		return flag
 	}
@@ -175,8 +207,7 @@ module.exports = class BattleManager {
 		enemy.HP -= this.calcEnemyDamage(10, 'NEUTRAL', enemy.name, enemy.core)
 
 		// Reset avoids
-		for (let e in this.isNMEAvoiding)
-			e = false
+		this.resetAvoidFlags()
 		
 		this.enemyLifeCheck()
 	}
@@ -217,14 +248,14 @@ module.exports = class BattleManager {
 		}
 
 		// Reset avoids
-		for (let e in this.isNMEAvoiding)
-			e = false
+		this.resetAvoidFlags()
 
 		// update stuff
 		this.navi.CP = tmpCPafterUse
 		this.enemyLifeCheck()
 	}
 
+	// Attack with a chip of target type 'Single'
 	doSingleCP(chip, target) {
 		const enemy = this.getEspecifiedEnemy(target)
 
@@ -240,6 +271,7 @@ module.exports = class BattleManager {
 		}
 	}
 
+	// Attack with a chip of target type 'Triple'
 	doTripleCP(chip, target) {
 		const enemy = this.getEspecifiedEnemy(target)
 		const nmeIndex = this.enemyList.indexOf(enemy)
@@ -254,18 +286,18 @@ module.exports = class BattleManager {
 				this.enemyList[i].name,
 				this.enemyList[i].core)
 
-				this.addToActionQueue(
-				this.navi.name+' dealt '+dmg+' damage to '
-				+this.enemyList[i].name+' using '+chip.name+'!')
+				this.addToActionQueue( this.navi.name +
+					' dealt '+ dmg +' damage to ' + this.enemyList[i].name +
+					' using '+ chip.name + '!')
 
 				this.enemyList[i].HP -= dmg
 			}
 
 			j++
 		}
-
 	}
 
+	// Use a 'Heal' target type chip
 	doUseHealChip(chip) {
 		// Heal the navi
 		let newHP = this.navi.HP + chip.attackValue[0]
@@ -352,6 +384,7 @@ module.exports = class BattleManager {
 		this.isNaviDefending = false
 	}
 
+	// Choose a pattern on the enemy's CPattacks list
 	chooseNMEAttack(enemy) {
 		let action = ''
 
@@ -376,19 +409,23 @@ module.exports = class BattleManager {
 		return action
 	}
 
+	// Let that enemy attack
 	doEnemyAttack(attk, author) {
 		const attack = getEnemyAttack(attk)
 
-		// Check if attack missed
-		const missed = this.calcRandomBool(attack.missChance)
-
-		if (missed) {
-			this.addToActionQueue(author+"'s "+attack.name+' missed '+this.navi.name+'!')
-			return
-		}
-
-		// Do damage
+		// Do an array of damage
 		for (const damage of attack.attackValue) {
+
+			// Check if that especific dmg missed
+			const missed = this.calcRandomBool(attack.missChance)
+
+			if (missed) {
+				this.addToActionQueue(author + "'s " +
+					attack.name + ' missed '
+					+ this.navi.name + '!')
+				continue
+			}
+
 			const dmg = this.calcNaviDamage(damage, attack.type)
 			
 			this.addToActionQueue(
@@ -431,6 +468,12 @@ module.exports = class BattleManager {
 		} )
 	}
 
+	// Enemies are no longer avoiding
+	resetAvoidFlags() {
+		for (let e in this.isNMEAvoiding)
+			e = false
+	}
+
 	// Calculate the damage done to the navi
 	// Including factors like weaknesses and defend actions
 	calcNaviDamage(dmg, core) {
@@ -463,8 +506,8 @@ module.exports = class BattleManager {
 
 	// Based on a float value between 0 and 1 return a random boolean
 	calcRandomBool(float) {
-		return Math.round( Math.random() * float * 10 )
-				>= Math.floor( float * 10 )
+		const x = Math.random()
+		return x <= float
 	}
 
 }

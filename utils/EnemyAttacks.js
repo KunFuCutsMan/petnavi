@@ -12,127 +12,127 @@ let json = {
 		this.name = 'ShockWave' 
 		this.type = 'NEUTRAL'
 		this.attackValue = [10]
-		this.missChance = 20
+		this.missChance = 0.2
 	},
 	SonicWave: function() {
 		this.name = 'SonicWave' 
 		this.type = 'NEUTRAL'
 		this.attackValue = [80]
-		this.missChance = 10
+		this.missChance = 0.1
 	},
 	DynaWave: function() {
 		this.name = 'DynaWave' 
 		this.type = 'NEUTRAL'
 		this.attackValue = [160]
-		this.missChance = 10
+		this.missChance = 0.1
 	},
 	WideSword: function() {
 		this.name = 'WideSword' 
 		this.type = 'SWORD'
 		this.attackValue = [30]
-		this.missChance = 10
+		this.missChance = 0.1
 	},
 	LongSword: function() {
 		this.name = 'LongSword' 
 		this.type = 'SWORD'
 		this.attackValue = [40]
-		this.missChance = 10
+		this.missChance = 0.10
 	},
 	FireSword: function() {
 		this.name = 'FireSword' 
 		this.type = 'FIRE'
 		this.attackValue = [60]
-		this.missChance = 10
+		this.missChance = 0.1
 	},
 	FireBlade: function() {
 		this.name = 'FireBlade' 
 		this.type = 'FIRE'
 		this.attackValue = [70]
-		this.missChance = 10
+		this.missChance = 0.1
 	},
 	AquaSword: function() {
 		this.name = 'AquaSword' 
 		this.type = 'AQUA'
 		this.attackValue = [100]
-		this.missChance = 10
+		this.missChance = 0.1
 	},
 	AquaBlade: function() {
 		this.name = 'AquaBlade' 
 		this.type = 'AQUA'
 		this.attackValue = [110]
-		this.missChance = 10
+		this.missChance = 0.1
 	},
 	Quake1: function() {
 		this.name = 'Quake1' 
 		this.type = 'BREAK'
 		this.attackValue = [20]
-		this.missChance = 1
+		this.missChance = 0.001
 	},
 	Quake2: function() {
 		this.name = 'Quake2' 
 		this.type = 'BREAK'
 		this.attackValue = [70]
-		this.missChance = 1
+		this.missChance = 0.001
 	},
 	Quake3: function() {
 		this.name = 'Quake3' 
 		this.type = 'BREAK'
 		this.attackValue = [150]
-		this.missChance = 1
+		this.missChance = 0.001
 	},
 	DashAttack: function() {
 		this.name = 'DashAttack' 
 		this.type = 'NEUTRAL'
 		this.attackValue = [30]
-		this.missChance = 30
+		this.missChance = 0.30
 	},
 	BurnDash: function() {
 		this.name = 'BurnDash' 
 		this.type = 'FIRE'
 		this.attackValue = [60]
-		this.missChance = 30
+		this.missChance = 0.30
 	},
 	CondorDash: function() {
 		this.name = 'CondorDash' 
 		this.type = 'WIND'
 		this.attackValue = [90]
-		this.missChance = 30
+		this.missChance = 0.30
 	},
 	HeatShot: function() {
 		this.name = 'HeatShot' 
 		this.type = 'FIRE'
 		this.attackValue = [30, 5]
-		this.missChance = 25
+		this.missChance = 0.25
 	},
 	HeatV: function() {
 		this.name = 'HeatV' 
 		this.type = 'FIRE'
 		this.attackValue = [60, 5, 5]
-		this.missChance = 25
+		this.missChance = 0.25
 	},
 	HeatSide: function() {
 		this.name = 'HeatSide' 
 		this.type = 'FIRE'
 		this.attackValue = [90, 5, 5, 5]
-		this.missChance = 25
+		this.missChance = 0.25
 	},
 	TriArrow: function() {
 		this.name = 'TriArrow' 
 		this.type = 'AQUA'
 		this.attackValue = [20, 20, 20]
-		this.missChance = 40
+		this.missChance = 0.5
 	},
 	TriSpear: function() {
 		this.name = 'TriSpear' 
 		this.type = 'AQUA'
 		this.attackValue = [40, 40, 40]
-		this.missChance = 40
+		this.missChance = 0.5
 	},
 	TriLance: function() {
 		this.name = 'TriLance' 
 		this.type = 'AQUA'
 		this.attackValue = [60, 60, 60]
-		this.missChance = 40
+		this.missChance = 0.5
 	},
 }
 
