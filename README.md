@@ -47,8 +47,8 @@ After solving the questionaire you a json file will be made with a name similar 
 		"Sword",
 		"WideSword",
 		"AirShot",
-		"HP10",
-		"HP10"
+		"HP30",
+		"HP30"
 	]
 }
 ```
