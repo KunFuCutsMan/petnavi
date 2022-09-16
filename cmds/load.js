@@ -1,6 +1,5 @@
 // Imports and other stuff used
 const NFM = require('../utils/NaviFileManager')
-const inquirer = require('inquirer')
 
 // Module
 module.exports = async (args) => {
@@ -11,11 +10,13 @@ module.exports = async (args) => {
 
 	const json = await NFM.readJson(fileName)
 	
-	if ( NFM.isNaviJson(json) ) {
-		await NFM.loadNaviIntoStorage(json)
-		console.log(`
+	if ( !NFM.isNaviJson(json) ) {
+		console.error('File is not a navi json')
+		process.exit(1)
+	}
+
+	await NFM.loadNaviIntoStorage(json)
+	console.log(`
 	Navi Loaded!
 	Be sure to interact with your navi's name, "${json.name}"!`)
-	}
-	else console.warn('File is not a navi json')
 }

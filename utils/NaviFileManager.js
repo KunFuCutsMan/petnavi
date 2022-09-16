@@ -33,7 +33,9 @@ const NAVI_TEMPLATE = {
 		"AirShot",
 		"HP30",
 		"HP30",
-	]
+	],
+	"willBeDeleted": false,
+	"dir": '.'
 }
 
 // Navi File Manager (or NFM) is an object containing
@@ -75,6 +77,10 @@ function NaviFileManager() {
 		})
 	}
 
+	this.deleteJson = async function(filePath) {
+		await fs.unlink(filePath)
+	}
+
 	// Make a navi file with the name, lvl and core as the arguments
 	this.makeNewNavi = async function(name, lvl, core) {
 		hp = lvl * 10
@@ -88,8 +94,21 @@ function NaviFileManager() {
 		navi.HP = hp
 		navi.maxCP = cp
 		navi.CP = cp
+		navi.willBeDeleted = false
+		// The "\\" that appear are actually escaped "\" characters
+		navi.dir = path.join( process.cwd(), name + 'DotEXE.json' )
 
-		makeJson( navi, name + 'DotEXE.json' )
+
+		this.makeJson( navi, name + 'DotEXE.json' )
+	}
+
+	// Delete both the navi from storage and its file
+	this.deleteNaviWithFile = async function(naviName) {
+		const navi = await this.deleteNaviFromStorage(naviName)
+
+		if (navi.dir)
+			await this.deleteJson(navi.dir)
+		else console.warn("Navi does not have a 'dir' key. Navi was only deleted from storage")
 	}
 
 	// Check if the json has the same keys as DEFAULT_NAVI
@@ -144,6 +163,19 @@ function NaviFileManager() {
 		await storage.init(STORAGE_SETTINGS)
 
 		return await storage.getItem(naviName)
+	}
+
+	// Remove the navi with said naviName and return its info
+	this.deleteNaviFromStorage = async function(naviName) {
+		await storage.init(STORAGE_SETTINGS)
+
+		const navi = await storage.getItem(naviName)
+
+		if (navi) {
+			await storage.removeItem(naviName)
+			return navi
+		}
+		else return {}
 	}
 	
 	// Get all the navis that end with '.EXE'

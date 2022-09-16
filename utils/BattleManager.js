@@ -167,6 +167,11 @@ module.exports = class BattleManager {
 			return 'LOST'
 		else if (this.enemyList.every( e => e === this.EMPTY_SPACE ))
 			return 'WON'
+		else {
+			console.error('Something strange happened during the battle:',
+				this.navi, this.enemyList, this.isEscaped)
+			return ''
+		}
 	}
 
 	// Either if the battle was escaped from, navi has no HP, or enemies are EMPTY_SPACE

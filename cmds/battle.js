@@ -32,8 +32,15 @@ module.exports = async (args) => {
 	// Main loop
 	await Bttl.mainLoop()
 
+	// Who won?
+	const bttlOutcome = Bttl.getOutcomeOfBattle()
+
+	// Heal the navi
+	Bttl.navi.HP = Bttl.navi.maxHP
+	Bttl.navi.CP = Bttl.navi.maxCP
+
 	// Check the output of the battle
-	switch ( Bttl.getOutcomeOfBattle() ) {
+	switch ( bttlOutcome ) {
 		case 'ESCAPED':
 			console.log("You've succesfully escaped the battle")
 			break
@@ -41,9 +48,19 @@ module.exports = async (args) => {
 			console.log("You've won!")
 			break
 		case 'LOST':
-			console.log("You lost lol")
+
+			// Activate may be able to lose
+			if (navi.willBeDeleted) {
+				console.log('Your is being deleted!')
+				await NFM.deleteNaviWithFile(navi.name)
+				console.log('Your navi got deleted.')
+			}
+			else {
+				navi.willBeDeleted = true
+				await NFM.updateNaviStatsInStorage(navi.name, navi)
+				console.warn('Your navi is heading for deletion!')
+			}
 			break
 	}
-
 } // end of module
 
