@@ -46,6 +46,23 @@ module.exports = async (args) => {
 			break
 		case 'WON':
 			console.log("You've won!")
+
+			let chipsAvailable = [];
+
+			for (const name of enemies) {
+				const nme = EnemyJson(name);
+				chipsAvailable = chipsAvailable.concat(nme.drops);
+			}
+
+			console.log(chipsAvailable)
+
+			const j = Math.floor( Math.random() * chipsAvailable.length )
+			const chipChosen = chipsAvailable[ j ]
+
+			console.log(chipChosen)
+
+			navi.chipLibrary.push( chipChosen )
+
 			break
 		case 'LOST':
 

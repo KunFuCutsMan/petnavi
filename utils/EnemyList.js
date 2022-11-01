@@ -15,6 +15,7 @@ var json = {
 			[ 'ShockWave', 'Defend' ]
 		]
 		this.secuence = []
+		this.drops = ['ShockWave', 'MetGuard']
 	},
 	Mettauros: function() {
 		this.name = 'Mettauros'
@@ -26,6 +27,7 @@ var json = {
 			['SonicWave', 'Defend'],
 		]
 		this.secuence = []
+		this.drops = ['SonicWave', 'MetGuard']
 	},
 	Mettaurus: function() {
 		this.name = 'Mettaurus'
@@ -37,6 +39,7 @@ var json = {
 			['DynaWave', 'Defend']
 		]
 		this.secuence = []
+		this.drops = ['DynaWave', 'MetGuard']
 	},
 	Swordy: function() {
 		this.name = 'Swordy'
@@ -49,6 +52,7 @@ var json = {
 			'LongSword'
 		]
 		this.secuence = []
+		this.drops = ['Sword', 'WideSword']
 	},
 	Swordos: function() {
 		this.name = 'Swordos'
@@ -61,6 +65,7 @@ var json = {
 			'FireBlade'
 		]
 		this.secuence = []
+		this.drops = ['FireSword', 'FireBlade']
 	},
 	Swordres: function() {
 		this.name = 'Swordres'
@@ -73,6 +78,7 @@ var json = {
 			'AquaBlade'
 		]
 		this.secuence = []
+		this.drops = ['AquaSword', 'AquaBlade']
 	},
 	Powie: function() {
 		this.name = 'Powie'
@@ -84,6 +90,7 @@ var json = {
 			['Dodge', 'Dodge', 'Quake1']
 		]
 		this.secuence = []
+		this.drops = ['Quake1']
 	},
 	PowOwie: function() {
 		this.name = 'PowOwie'
@@ -95,6 +102,7 @@ var json = {
 			['Dodge', 'Dodge', 'Quake2']
 		]
 		this.secuence = []
+		this.drops = ['Quake2']
 	},
 	PowOwios: function() {
 		this.name = 'PowOwios'
@@ -106,6 +114,7 @@ var json = {
 			['Dodge', 'Dodge', 'Quake3']
 		]
 		this.secuence = []
+		this.drops = ['Quake3']
 	},
 	Fishy: function() {
 		this.name = 'Fishy'
@@ -117,6 +126,7 @@ var json = {
 			['Dodge', 'DashAttack']
 		]
 		this.secuence = []
+		this.drops = ['DashAttack']
 	},
 	Fishi: function() {
 		this.name = 'Fishi'
@@ -128,6 +138,7 @@ var json = {
 			['Dodge', 'BurnDash']
 		]
 		this.secuence = []
+		this.drops = ['BurnDash']
 	},
 	Fishii: function() {
 		this.name = 'Fishii'
@@ -139,6 +150,7 @@ var json = {
 			['Dodge', 'CondorDash']
 		]
 		this.secuence = []
+		this.drops = ['CondorDash']
 	},
 	Spikey: function() {
 		this.name = 'Spikey'
@@ -150,6 +162,7 @@ var json = {
 			['Dodge', 'HeatShot']
 		]
 		this.secuence = []
+		this.drops = ['HeatShot']
 	},
 	Spiko: function() {
 		this.name = 'Spiko'
@@ -162,6 +175,7 @@ var json = {
 			['Dodge', 'HeatV']
 		]
 		this.secuence = []
+		this.drops = ['HeatV']
 	},
 	Spikus: function() {
 		this.name = 'Spikus'
@@ -175,6 +189,7 @@ var json = {
 			['Dodge', 'HeatSide']
 		]
 		this.secuence = []
+		this.drops = ['HeatSide']
 	},
 	Piranha: function() {
 		this.name = 'Piranha'
@@ -186,6 +201,7 @@ var json = {
 			['Nothing', 'TriArrow']
 		]
 		this.secuence = []
+		this.drops = ['TriArrow']
 	},
 	Piranhas: function() {
 		this.name = 'Piranhas'
@@ -197,6 +213,7 @@ var json = {
 			['Nothing', 'TriSpear']
 		]
 		this.secuence = []
+		this.drops = ['TriSpear']
 	},
 	Piranhar: function() {
 		this.name = 'Piranhar'
@@ -208,5 +225,6 @@ var json = {
 			['Dodge', 'TriLance']
 		]
 		this.secuence = []
+		this.drops = ['TriLance']
 	}
 }
