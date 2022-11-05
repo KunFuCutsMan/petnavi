@@ -47,21 +47,39 @@ module.exports = async (args) => {
 		case 'WON':
 			console.log("You've won!")
 
-			let chipsAvailable = [];
+			// Decide if the navi won a chip or a zenny
+			if ( Math.random() > 0.5 ) {
+				// Drop a chip
+				let chipsAvailable = [];
+				
+				for (const name of enemies) {
+					const nme = EnemyJson(name)
+					chipsAvailable = chipsAvailable.concat(nme.drops)
+				}
 
-			for (const name of enemies) {
-				const nme = EnemyJson(name);
-				chipsAvailable = chipsAvailable.concat(nme.drops);
+				const j = Math.floor( Math.random() * chipsAvailable.length )
+				const chipChosen = chipsAvailable[ j ]
+
+				console.log('You got: ' + chipChosen )
+
+				navi.chipLibrary.push( chipChosen )
+			}
+			else {
+				// Gain some zenny
+				zennies = 0
+				for (const name of enemies) {
+					const nme = EnemyJson(name)
+					zennies += nme.maxHP
+				}
+
+				zennies *= 5
+
+				console.log('You got: ' + zennies + ' zenny')
+
+				navi.zenny += zennies
 			}
 
-			console.log(chipsAvailable)
-
-			const j = Math.floor( Math.random() * chipsAvailable.length )
-			const chipChosen = chipsAvailable[ j ]
-
-			console.log(chipChosen)
-
-			navi.chipLibrary.push( chipChosen )
+			await NFM.updateNaviStatsInStorage(navi.name, navi)
 
 			break
 		case 'LOST':

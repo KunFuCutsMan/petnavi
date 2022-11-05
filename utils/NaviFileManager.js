@@ -35,7 +35,9 @@ const NAVI_TEMPLATE = {
 		"HP30",
 	],
 	"willBeDeleted": false,
-	"dir": '.'
+	"dir": '.',
+	"zenny": 100,
+	"chipLibrary": []
 }
 
 // Navi File Manager (or NFM) is an object containing
