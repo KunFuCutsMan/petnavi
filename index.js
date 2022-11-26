@@ -33,6 +33,9 @@ async function main() {
 		case 'loaded':
 			require('./cmds/loaded')(args)
 			break
+		case 'folder':
+			require('./cmds/folder')(args)
+			break
 		default:
 			console.error(`"${cmd}" is not a valid command!`)
 			break

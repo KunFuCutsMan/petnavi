@@ -1,7 +1,7 @@
-const attackInfo = require('./AttackInfo.js')
-const getEnemyAttack = require('./EnemyAttacks.js')
+const attackInfo = require('./AttackInfo')
+const getEnemyAttack = require('./EnemyAttacks')
 const EnemyJson = require('../utils/EnemyList')
-const UI = new ( require('./BattleUI') )( '[\t]' )
+const UI = new ( require('./UI/BattleUI') )( '[\t]', 80 )
 
 TypeWeaknessJson = {
 	'FIRE': ['WATER', 'WIND'],
