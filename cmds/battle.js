@@ -6,16 +6,8 @@ const BattleManager = require('../utils/BattleManager')
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 module.exports = async (args) => {
-	// Get the navi's name for a key
-	const naviName = args._[1]
-	? args._[1]
-	: ''
-
-	const navi = await NFM.getNaviFromStorage(naviName)
-	if ( !navi ) {
-		console.error('Could not find a Navi with the name "'+naviName+'"')
-		process.exit(1)
-	}
+	// Get the navi (and break the program if you don't)
+	const navi = await NFM.getNaviWithName( args._[1] )
 
 	// Randomly get 1 - 5 enemy names from the array
 	const nmeArray = ['Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']

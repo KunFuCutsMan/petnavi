@@ -8,12 +8,8 @@ const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 module.exports = async (args) => {
 	const UI = new ChipUI(80)
 	
-	// Get the navi's name for a key
-	const naviName = args._[1]
-	? args._[1]
-	: ''
-
-	const navi = await NFM.saveNaviFromStorage(naviName)
+	// Get the navi (and break the program if you don't)
+	const navi = await NFM.getNaviWithName( args._[1] )
 
 
 	if ( !navi ) {
