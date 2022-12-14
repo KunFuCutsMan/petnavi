@@ -16,13 +16,53 @@ module.exports = class ChipUI extends ViewerUI {
 			name: 'action',
 			message: 'What will you do?',
 			choices: [
-			'Change Folder', 'Exit'
+			'View Library', 'Change Folder', 'Exit'
 			],
 			loop: false,
 			pageSize: 5
 		})
 
 		return answerAction.action
+	}
+
+	async askChipLibrary( lib, cpattks ) {
+		const libVals = []
+		for (const chip in lib) {
+			libVals.push({
+				name: '' + chip + ' x' + lib[chip],
+				value: chip
+			})
+		}
+
+		const cpattksIndexes = []
+		let i = 0;
+		for (const chip of cpattks) {
+			cpattksIndexes.push({
+				name: '' + chip,
+				value: i
+			})
+			i++
+		}
+
+		const swapChipsQuestion = await inquirer.prompt([ {
+				type: 'list',
+				name: 'chipToSwap',
+				message: 'What chip would you like to use?',
+				choices: libVals
+			}, {
+				type: 'list',
+				name: 'indexOfChipPlace',
+				message: "You\'ve reached the maximum amount of chips in your folder,\nselect one chip to swap it with:",
+				choices: cpattksIndexes,
+				pageSize: 12,
+				loop: false,
+				when(prevAnswers) {
+					return cpattksIndexes.length >= 12
+				}
+			}
+		])
+
+		return swapChipsQuestion;
 	}
 
 	addNaviChipDetails(cpattks) {

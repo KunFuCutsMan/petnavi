@@ -67,7 +67,7 @@ var json = {
 		this.canTarget = true
 	},
 	HP30: function() {
-		this.name = 'HP10'
+		this.name = 'HP30'
 		this.type = 'NEUTRAL'
 		this.cpCost = 3
 		this.target = 'Heal'
