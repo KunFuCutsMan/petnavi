@@ -3,12 +3,8 @@ const NFM = require('../utils/NaviFileManager')
 
 // Module
 module.exports = async (args) => {
-	// Get the file's name
-	const fileName = args._[1]
-		? args._[1]
-		: ''
-
-	const json = await NFM.readJson(fileName)
+	// Get the navi (and break the program if you don't)
+	const json = await getNaviWithName( args._[1] )
 	
 	if ( !NFM.isNaviJson(json) ) {
 		console.error('File is not a navi json')

@@ -186,6 +186,18 @@ function NaviFileManager() {
 
 		return await storage.valuesWithKeyMatch('.EXE')
 	}
+
+	// Get the navi loaded based on the name, otherwise close the program
+	this.getNaviWithName = async function(naviName) {
+		const name = naviName ? naviName : ''
+
+		const json = await NFM.saveNaviFromStorage(naviName)
+		if ( !json ) {
+			console.error('Could not find a Navi with the name "'+naviName+'"')
+			process.exit(1)
+		}
+		else return json
+	}
 }
 
 module.exports = new NaviFileManager()
