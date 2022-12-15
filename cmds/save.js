@@ -7,6 +7,10 @@ module.exports = async (args) => {
 
 	const fileName = naviName.replace( '.EXE', 'DotEXE.json' )
 
+	// And save the boi from extinction
+	json.willBeDeleted = false
+
+	await NFM.updateNaviStatsInStorage( naviName, json )
 	await NFM.makeJson( json, fileName )
 	console.log(`
 	Your navi's information was saved succesfully as "${fileName}"!`)
