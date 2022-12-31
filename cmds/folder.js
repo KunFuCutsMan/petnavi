@@ -1,14 +1,14 @@
 const inquirer = require('inquirer')
 
 const ChipUI = require('../utils/UI/ChipUI')
+const PaginatorUI = require('../utils/UI/PaginatorUI')
 const NFM = require('../utils/NaviFileManager')
 
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 module.exports = async (args) => {
-	const UI = new ChipUI(80)
-	
 	// Get the navi (and break the program if you don't)
+	const naviName = args._[1]
 	const navi = await NFM.getNaviWithName( args._[1] )
 
 
@@ -17,29 +17,38 @@ module.exports = async (args) => {
 		process.exit(1)
 	}
 
-	let act = ''
-
-	while (act !== 'Exit') {
-		UI.resetScreen()
-		
-		console.log( UI.getCPattackList(navi.CPattacks) )
-		act = await UI.askActionPrompt()
-
-		switch ( act ) {
-			case 'View Library':
-				break
-			case 'Change Folder':
-				const chipToSwitch = await UI.askChipLibrary(
-					reduceChipLibToJson(navi.chipLibrary), navi.CPattacks )
-
-				doChangingChipActions(chipToSwitch, navi)
-				break
-		}
-
-	}
+	// Show the menu
+	await showInitialActionMenu( navi )
 
 	await NFM.updateNaviStatsInStorage(naviName, navi)
 	console.log('Changes have been saved')
+}
+
+async function showInitialActionMenu( navi ) {
+	const UI = new ChipUI(80)
+	UI.resetScreen()
+	
+	console.log( UI.getCPattackList(navi.CPattacks) )
+	const act = await UI.askActionPrompt()
+
+	switch ( act ) {
+		case 'View Chips':
+			// Do some paginator things
+			// https://www.npmjs.com/package/paginator
+
+			await showPaginator( navi.chipLibrary );
+			break
+		case 'Change Folder':
+			const chipToSwitch = await UI.askChipLibrary(
+				reduceChipLibToJson(navi.chipLibrary), navi.CPattacks )
+
+			doChangingChipActions(chipToSwitch, navi)
+			break
+	}
+
+	if ( act !== 'Exit' )
+		await showInitialActionMenu( navi )
+	else return
 }
 
 function reduceChipLibToJson(lib) {
@@ -83,4 +92,23 @@ function swapChipWithIndex(idx, newChip, list) {
 		}
 		else continue
 	}
+}
+
+async function showPaginator( list ) {
+	const pag = new PaginatorUI( 80, list )
+	pag.resetScreen()
+	console.log( pag.getPaginatorList() )
+	
+	action = await pag.askPageMovements().page
+
+	switch ( action ) {
+		case 'Previous Page':
+			break
+		case 'Next Page':
+			break
+	}
+
+	if ( action !== 'Back' )
+		await showPaginator( list )
+	else return
 }

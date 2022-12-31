@@ -16,7 +16,7 @@ module.exports = class ChipUI extends ViewerUI {
 			name: 'action',
 			message: 'What will you do?',
 			choices: [
-			'View Library', 'Change Folder', 'Exit'
+			'View Chips', 'Change Folder', 'Exit'
 			],
 			loop: false,
 			pageSize: 5
