@@ -1,28 +1,48 @@
-const inquirer = require('inquirer')
+const Enquirer = require('enquirer')
 const Paginator = require('paginator')
 
-const attackInfo = require('../AttackInfo')
+const attackInfo = require('../utils/AttackInfo')
 const ViewerUI = require('./ViewerUI')
 
 module.exports = class PaginatorUI extends ViewerUI {
 
 	constructor(w, list) {
 		super(w)
-		this.list = list
+
+		this.enq = new Enquirer()
+		this.enq.register( 'selectAfterText', require('./enquirer/SelectAfterText') )
+		
 		this.paginator = new Paginator(10, 5)
+		
+		this.list = list
 		this.currentPage = 1
 	}
 
-	async askPageMovements() {
-		const a = await inquirer.prompt({
-			type: 'list',
-			name: 'page',
-			message: ' ',
-			choices: ['Previous Page', 'Next Page', 'Back'],
-			loop: false
+	async showPaginatorMenu() {
+		this.resetScreen()
+		
+		let { action } = await this.enq.prompt({
+			type: 'selectaftertext',
+			name: 'action',
+			message: 'Show:',
+			textToShow: this.getPaginatorList(),
+			choices: ['Previous Page', 'Next Page', 'Back']
 		})
 
-		return a
+		const pag_info = this.paginator.build( this.list.length, this.currentPage )
+		
+		// Move the page accordingly
+		if ( action === 'Previous Page' ) {
+			if ( pag_info.has_previous_page ) this.currentPage--
+		}
+		else if ( action === 'Next Page' ) {
+			if ( pag_info.has_next_page ) this.currentPage++
+		}
+
+		// And as long as we don't wish to to the previous menu,
+		// show the paginator again
+		if ( action !== 'Back' )
+			await this.showPaginatorMenu()
 	}
 
 	addPagesNumbers() {

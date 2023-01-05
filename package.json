@@ -12,6 +12,7 @@
 		"cliui": "^6.0.0",
 		"enquirer": "^2.3.6",
 		"minimist": "^1.2.6",
-		"node-persist": "^3.1.0"
+		"node-persist": "^3.1.0",
+		"paginator": "^1.0.0"
 	}
 }

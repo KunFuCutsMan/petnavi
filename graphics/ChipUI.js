@@ -1,6 +1,7 @@
-const inquirer = require('inquirer')
+const Enquirer = require('enquirer')
 
-const attackInfo = require('../AttackInfo')
+const attackInfo = require('../utils/AttackInfo')
+const PaginatorUI = require('./PaginatorUI')
 const ViewerUI = require('./ViewerUI')
 
 
@@ -8,21 +9,37 @@ module.exports = class ChipUI extends ViewerUI {
 
 	constructor(w) {
 		super(w)
+		this.enq = new Enquirer()
+		this.enq.register( 'selectAfterText', require('./enquirer/SelectAfterText') )
 	}
 
-	async askActionPrompt() {
-		const answerAction = await inquirer.prompt({
-			type: 'list',
+	async showMenu( navi ) {
+		this.resetScreen()
+
+		// What will you do?
+		let { action } = await this.enq.prompt({
+			type: 'selectaftertext',
 			name: 'action',
 			message: 'What will you do?',
-			choices: [
-			'View Chips', 'Change Folder', 'Exit'
-			],
-			loop: false,
-			pageSize: 5
+			textToShow: this.getCPattackList( navi.CPattacks ),
+			choices: [ 'View Chips', 'Change Folder', 'Exit' ],
 		})
 
-		return answerAction.action
+		switch (action) {
+		case 'View Chips':
+			// Show the paginator of our current chip library
+			const pag = new PaginatorUI( 80, navi.chipLibrary )
+			await pag.showPaginatorMenu()
+			break
+
+		case 'Change Folder':
+			// do stuff
+			break
+		}
+
+		// And repeat until we wish to go back
+		if ( action !== 'Exit' )
+			await this.showMenu( navi )
 	}
 
 	async askChipLibrary( lib, cpattks ) {
