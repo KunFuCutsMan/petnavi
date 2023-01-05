@@ -4,6 +4,8 @@ const attackInfo = require('../utils/AttackInfo')
 const PaginatorUI = require('./PaginatorUI')
 const ViewerUI = require('./ViewerUI')
 
+const sleep = async ( ms = 2000 ) => new Promise( r => setTimeout(r, ms) )
+
 
 module.exports = class ChipUI extends ViewerUI {
 
@@ -33,7 +35,7 @@ module.exports = class ChipUI extends ViewerUI {
 			break
 
 		case 'Change Folder':
-			// do stuff
+			await this.askAboutSwappingChips( navi )
 			break
 		}
 
@@ -42,44 +44,95 @@ module.exports = class ChipUI extends ViewerUI {
 			await this.showMenu( navi )
 	}
 
-	async askChipLibrary( lib, cpattks ) {
-		const libVals = []
-		for (const chip in lib) {
-			libVals.push({
-				name: '' + chip + ' x' + lib[chip],
-				value: chip
+	async askAboutSwappingChips( navi ) {
+
+		const amountOfInstances = this.countInstancesInArray( navi.chipLibrary )
+		
+		// Get all the chips that the navi has
+		const libraryValues = []
+		for (const chip in amountOfInstances) {
+			libraryValues.push({
+				name: chip, value: chip,
+				message:  chip + ' x' + amountOfInstances[chip],
 			})
 		}
 
+		// And the index of the chip to be swapped, if it happens
 		const cpattksIndexes = []
 		let i = 0;
-		for (const chip of cpattks) {
+		for (const chipName of navi.CPattacks) {
 			cpattksIndexes.push({
-				name: '' + chip,
-				value: i
+				name: chipName + i,
+				message: chipName,
+				value: '' + i + ''
 			})
 			i++
 		}
 
-		const swapChipsQuestion = await inquirer.prompt([ {
-				type: 'list',
-				name: 'chipToSwap',
-				message: 'What chip would you like to use?',
-				choices: libVals
+		const answers = await this.enq.prompt([
+			{
+				type: 'select',
+				name: 'chipAdded',
+				message: 'What chip would you like to add?',
+				choices: libraryValues
 			}, {
-				type: 'list',
-				name: 'indexOfChipPlace',
-				message: "You\'ve reached the maximum amount of chips in your folder,\nselect one chip to swap it with:",
+				type: 'selectaftertext',
+				name: 'chipToSwap',
+				textToShow: 'You cannot use more than 12 chips in a folder',
+				message: "Select one chip to swap it with",
 				choices: cpattksIndexes,
-				pageSize: 12,
-				loop: false,
-				when(prevAnswers) {
-					return cpattksIndexes.length >= 12
-				}
+				skip: cpattksIndexes.length < 12,
 			}
 		])
 
-		return swapChipsQuestion;
+		this.changeOrAddChips( answers, navi, cpattksIndexes )
+	}
+
+	countInstancesInArray(array) {
+		const countObj = {}
+		
+		for (const thing of array) {
+			if ( countObj[thing] == undefined )
+				countObj[thing] = 1
+			else countObj[thing]++
+		}
+
+		return countObj
+	}
+
+	changeOrAddChips(answers, navi, cpattksIndexes) {
+	
+		if ( navi.CPattacks.length < 12 ) {
+			// Add the chip
+			navi.CPattacks.push( answers.chipAdded )
+		}
+		else {
+			const idxToSwap = this.findIndexOf( cpattksIndexes, answers.chipToSwap )
+
+			// Swap the chip
+			const oldChip = this.swapThingInArray(
+				idxToSwap,
+				answers.chipAdded,
+				navi.CPattacks )
+
+			// And add the old chip to the library
+			navi.chipLibrary.push( oldChip )
+		}
+	}
+
+	swapThingInArray(idx, newThing, list) {
+		for (let i = 0; i < list.length; i++) {
+			if ( idx == i ) {
+				const oldThing = list[i]
+				list[i] = newThing
+				return oldThing
+			}
+			else continue
+		}
+	}
+
+	findIndexOf( array, name ) {
+		return array.findIndex( i => i.name == name )
 	}
 
 	addNaviChipDetails(cpattks) {
