@@ -1,21 +1,6 @@
 // Imports and other stuff used
 const NFM = require('../utils/NaviFileManager')
-const inquirer = require('inquirer')
-
-const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
-
-// Too big to be in inquirer prompts
-const coreTypeList = [
-	{name: 'Neutral', value: 'NEUTRAL',},
-	{name: 'Fire', value: 'FIRE'},
-	{name: 'Wood', value: 'WOOD'},
-	{name: 'Elec', value: 'ELEC'},
-	{name: 'Aqua', value: 'AQUA'},
-	{name: 'Sword', value: 'SWORD'},
-	{name: 'Wind', value: 'WIND'},
-	{name: 'Target', value: 'TARGET'},
-	{name: 'Break', value: 'BREAK'}
-]
+const Enquirer = require('enquirer')
 
 // Text
 const introText = [
@@ -64,62 +49,49 @@ const naviFileText = [
 module.exports = async (args) => {
 	// Flag check to see if the text wants to be skipped
 	const boolSkipText = (args.s || args.skip)
-	
-	// Intro text
-	if (!boolSkipText)
-		for (const txt of introText) {
-			console.log(txt)
-			await sleep()
+
+	const enquirer = new Enquirer()
+	enquirer.register('inputAfterText', require('../graphics/enquirer/InputAfterText') )
+	enquirer.register('selectAfterText', require('../graphics/enquirer/SelectAfterText') )
+
+	const answers = await enquirer.prompt([
+		{
+			type: 'inputaftertext',
+			name: 'name',
+			message: 'What is the name of your navi?',
+			textToShow: (!boolSkipText) ? introText.join('\n') : '',
+			result: function(value) {
+				value = value.replace(/\s+/gm,'')
+				firstLetter = value.charAt(0).toUpperCase()
+				return firstLetter + value.slice(1)
+			}
+		}, {
+			type: 'selectaftertext',
+			name: 'core',
+			message: 'What is the type or your navi (can be changed later) ?',
+			textToShow: (!boolSkipText) ? coreTypeText.join('\n') : '',
+			choices: [
+				'NEUTRAL', 'FIRE', 'WOOD', 'ELEC', 'AQUA',
+				'SWORD', 'WIND', 'TARGET', 'BREAK'
+			],
+				default: 0,
+				loop: false,
+				pageSize: 9
+		}, {
+			type: 'confirm',
+			name: 'confirm',
+			textToShow: (!boolSkipText) ? naviFileText.join('\n') : '',
+			message: 'Wish to create your navi file in this directory?'
 		}
-
-	const answerName = await inquirer.prompt({
-		type: 'input',
-		name: 'naviName',
-		message: 'What is the name of your navi? (Without extensions)'
-	})
-
-	// Core Type prompt
-	if (!boolSkipText)
-		for (const txt of coreTypeText) {
-			console.log(txt)
-			await sleep()
-		}
-
-	const answerCore = await inquirer.prompt({
-		type: 'list',
-		name: 'coreType',
-		message: 'What is the type or your navi?\n'
-		+'( Can be changed later )',
-		choices: coreTypeList,
-		default: 0,
-		loop: false,
-		pageSize: 9
-	})
-
-	// Confirmation about making the navi file on the current directory
-	// If falsy then the navi isn't created
-	if (!boolSkipText)
-		for (const txt of naviFileText) {
-			console.log(txt)
-			await sleep()
-		}
-
-	const answerNaviFile = await inquirer.prompt({
-		type: 'confirm',
-		name: 'naviFileConfirm',
-		message: 'Wish to create your navi file in this directory?'
-	})
+	])
 
 	// Navi File confirmation
-	if (!answerNaviFile.naviFileConfirm) {
+	if (!answers.confirm) {
 		console.log('Permission for navi file creation denied')
 		process.exit(0)
 	}
 	
-	const naviName = answerName.naviName
-	const coreType = answerCore.coreType
-	
 	console.time('Navi File created in')
-	await NFM.makeNewNavi(naviName, 10, coreType)
+	await NFM.makeNewNavi(answers.name, 10, answers.core)
 	console.timeEnd('Navi File created in')
 }
