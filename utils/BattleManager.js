@@ -1,7 +1,7 @@
 const attackInfo = require('./AttackInfo')
 const getEnemyAttack = require('./EnemyAttacks')
 const EnemyJson = require('../utils/EnemyList')
-const UI = new ( require('./UI/BattleUI') )( '[\t]', 80 )
+const UI = new ( require('../graphics/BattleUI') )( '[\t]', 80 )
 
 TypeWeaknessJson = {
 	'FIRE': ['WATER', 'WIND'],
@@ -89,37 +89,19 @@ module.exports = class BattleManager {
 	// Loop as seen previously in battle.js
 	async mainLoop() {
 		while ( !this.isBattleOver() ) {
-			// Clean the screen
-			UI.resetScreen()
-			console.log( UI.getBattleUI(this.navi, this.enemyList) )
 			
 			// Decide what to do
-			const action = await UI.askActionPrompt()
+			const acts = await UI.showMenuAndAskActions( this.navi, this.enemyList )
 			
-			let cpAttack = ''
-			let chip = {}
-			let target = ''
-
-			// If "Cyber Actions" then decide what chip to use
-			if (action === 'Cyber Actions') {
-				cpAttack = await UI.askChooseChip(this.navi.CPattacks)
-				chip = this.getChipData(cpAttack)
-			}
-
-			// Choose a target, if any
-			// chip.canTarget will only work if cyber actions was chosen
-			if ( action === 'Attack' || chip.canTarget )
-				target = await UI.askTarget(this.enemyList)
-
 			// Do actions
-			switch (action) {
+			switch ( acts.action ) {
 				case 'Attack':
-					this.addToActionQueue(this.navi.name+' attacked '+target+'!')
-					this.naviAttacks(target)
+					this.addToActionQueue(this.navi.name+' attacked '+acts.target+'!')
+					this.naviAttacks(acts.target)
 					break
 				case 'Cyber Actions':
-					this.addToActionQueue(this.navi.name+' used '+cpAttack+'!')
-					this.naviCyberAttacks(target, cpAttack)
+					this.addToActionQueue(this.navi.name+' used '+acts.cpattk+'!')
+					this.naviCyberAttacks(acts.target, acts.cpattk)
 					break
 				case 'Defend':
 					this.addToActionQueue(this.navi.name+' defended agaisnt any attacks')

@@ -1,7 +1,7 @@
-const inquirer = require('inquirer')
+const Enquirer = require('enquirer')
 
 const ViewerUI = require('./ViewerUI')
-
+const attackInfo = require('../utils/AttackInfo')
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 /**
@@ -13,44 +13,60 @@ module.exports = class BattleUI extends ViewerUI {
 	constructor( empty, w = 60 ) {
 		super(w)
 		this.EMPTY_SPACE = empty
+		this.enq = new Enquirer()
+		this.enq.register( 'selectAfterText', require('./enquirer/SelectAfterText') )
 	}
 
-	async askActionPrompt() {
-		const answerAction = await inquirer.prompt({
-			type: 'list',
-			name: 'action',
-			message: 'What will you do?',
-			choices: [
-			'Attack', 'Cyber Actions',
-			'Defend', new inquirer.Separator() , 'Escape'
-			],
-			loop: true,
-			pageSize: 5
-		})
-		return answerAction.action
-	}
+	async showMenuAndAskActions(navi, enemyList) {
+		// Reset screen
+		this.resetScreen()
 
-	async askChooseChip(CPattacks) {
-		const answerCPAttk = await inquirer.prompt({
-			type: 'list',
-			name: 'cpattk',
-			message: 'Choose your Chip:',
-			choices: CPattacks,
-			pageSize: 15,
-			loop: true,
-		})
-		return answerCPAttk.cpattk
-	}
+		// Normalize the choice array of 'cpattk' select question
+		const chipInstances = {}
+		const normalizedChipChoices = navi.CPattacks.map( c => {
+			return { message: c, value: c }
+		} )
 
-	async askTarget(eList) {
-		const answerTarget = await inquirer.prompt({
-			type: 'list',
-			name: 'target',
-			message: 'Attack Who?',
-			choices: eList.filter( i => i !== this.EMPTY_SPACE),
-			loop: false,
-		})
-		return answerTarget.target
+		return await this.enq.prompt([
+			{
+				type: 'selectaftertext',
+				name: 'action',
+				message: 'What will you do?',
+				textToShow: this.getBattleUI( navi, enemyList ),
+				choices: [
+					{ name: 'Attack', value: 'Attack' },
+					{ name: 'Cyber Actions', value: 'Cyber Actions' },
+					{ name: 'Defend', value: 'Defend' },
+					{ role: 'separator' },
+					{ name: 'Escape', value: 'Escape' }
+				]
+			}, {
+				type: 'select',
+				name: 'cpattk',
+				message: 'Choose your chip',
+				choices: normalizedChipChoices,
+				
+				skip: function() {
+					return this.state.answers['action'] !== 'Cyber Actions'
+				}
+			}, {
+				type: 'select',
+				name: 'target',
+				message: 'Aim at',
+				choices: enemyList.filter( i => i !== this.EMPTY_SPACE),
+				
+				skip: function() {
+					const chip = attackInfo( this.state.answers['cpattk'] )
+
+					// Boolean flags for not making spaguetti
+					const a = this.state.answers['action'] === 'Attack'
+					const b = this.state.answers['action'] === 'Cyber Actions'
+					const c = chip.canTarget === true
+
+					return !( a || ( b && c ) )
+				}
+			}
+		]);
 	}
 
 	async logActionQueue(aq, isOver) {
@@ -64,16 +80,16 @@ module.exports = class BattleUI extends ViewerUI {
 			await sleep(1500)
 	}
 
-	addVoid() {
-		this.ui.div('')
-	}
+	countInstancesInArray(array) {
+		const countObj = {}
+		
+		for (const thing of array) {
+			if ( countObj[thing] == undefined )
+				countObj[thing] = 1
+			else countObj[thing]++
+		}
 
-	addBar() {
-		let str = ''
-		for (let i = 0; i < 60; i++)
-			str += '='
-
-		this.ui.div({text: str, padding: [0, 0, 0, 0]})
+		return countObj
 	}
 	
 	addEnemyListUI(eList) {

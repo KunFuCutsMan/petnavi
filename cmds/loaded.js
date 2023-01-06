@@ -1,5 +1,5 @@
 const NFM = require('../utils/NaviFileManager')
-const NaviCardUI = require('../utils/UI/NaviCardUI')
+const NaviCardUI = require('../graphics/NaviCardUI')
 
 module.exports = async (args) => {
 	const loadedNavis = await NFM.getAllLoadedNavis()

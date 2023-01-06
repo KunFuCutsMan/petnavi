@@ -22,7 +22,9 @@
 */
 
 module.exports = function(chip) {
-	return new json[chip]()
+	if (typeof chip !== 'string' || chip == '')
+		return {}
+	else return new json[chip]()
 }
 
 var json = {
