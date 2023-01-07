@@ -37,8 +37,8 @@ load: `
 	Load your navi into the module
 
 	Whatever file that is provided in <fileName> will be loaded
-	and used by the module for other commands or other activities
-	like battling (after checking it's an actual Navi File, of course)
+	and used other commands or other activities like battling
+	(after checking it's an actual Navi File, of course)
 
 	Most actions that happen to your navi through these commands
 	will be applied to the loaded copy of your navi, after of which
