@@ -28,8 +28,6 @@ module.exports = class Navi {
 
 	recieveDamage( damage, Core = 'NEUTRAL' ) {
 		let dmg = damage
-
-		console.log(Core)
 		// If a core was given, and its not a NEUTRAL type,
 		// calculate its the damage bonus if it applies
 		if ( Core !== 'NEUTRAL' && Core.type !== 'NEUTRAL' ) {
@@ -88,6 +86,10 @@ module.exports = class Navi {
 
 	calcRandomBool(float) {
 		return Math.random() <= float
+	}
+
+	get defendCPBonus() {
+		return Math.ceil( this.maxCP * this.DEFEND_BONUS )
 	}
 
 }

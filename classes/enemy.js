@@ -67,20 +67,6 @@ module.exports = class Enemy {
 		return action
 	}
 
-	attack( Navi, attackName ) {
-		const attack = getEnemyAttack( attackName )
-
-		// Do the array of damage
-		for ( const damage of attack.attackValue ) {
-			// And as long as it doesn't miss
-			const missed = this.calcRandomBool( attack.missChance )
-
-			if ( missed ) continue
-
-			Navi.recieveDamage( damage, new coreTypeClass( attack.type ) )
-		}
-	}
-
 	avoidAttack() {
 		return this.calcRandomBool( this.AVOID_BONUS )
 	}

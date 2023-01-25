@@ -1,10 +1,8 @@
 const attackInfo = require('./AttackInfo')
 const getEnemyAttack = require('./EnemyAttacks')
-const EmptySpace = require('../classes/EmptySpace')
-const Enemy = require ('../classes/enemy')
-const Navi = require('../classes/navi')
-const coreTypeClass = require('../classes/coreTypes')
 const UI = new ( require('../graphics/BattleUI') )( 80 )
+
+const { Navi, Enemy, EmptySpace, coreTypeClass } = require('../classes')
 
 module.exports = class BattleManager {
 	
@@ -220,7 +218,7 @@ module.exports = class BattleManager {
 		// Heal the navi
 		this.navi.healHP( chip.attackValue[0] )
 
-		if ( this.navi.HP >= this.navi.maxHP ) {
+		if ( this.navi.HP >= this.navi.maxHP )
 			this.addToActionQueue(
 				this.navi.name+' recovered all their health')
 		else 
@@ -231,18 +229,16 @@ module.exports = class BattleManager {
 	// "Defend" action
 	naviDefends() {
 		// See doEnemyAttack() to see what is done with this flag
-		this.isNaviDefending = true
+		this.navi.isDefending = true
 
 		// Recover some CP
-		const newCP = this.navi.CP + this.CPrecoveryBonus
+		this.navi.healCP( this.navi.defendCPBonus )
 
-		if (newCP >= this.navi.maxCP) {
+		if ( this.navi.CP >= this.navi.maxCP ) {
 			this.addToActionQueue(this.navi.name+' recovered all of their CP')
-			this.navi.CP = this.navi.maxCP
 		}
 		else {
 			this.addToActionQueue(this.navi.name+' recovered some of their CP')
-			this.navi.CP = newCP
 		}
 	}
 
@@ -292,12 +288,12 @@ module.exports = class BattleManager {
 					enemy.isAvoiding = true
 					break 
 				default:
-					enemy.attack( this.navi, attk )
+					this.doEnemyAttack( attk, enemy )
 			}
 		}
 
 		// Navi is no longer defending (if they were)
-		this.isNaviDefending = false
+		this.navi.isDefending = false
 	}
 
 	// Let that enemy attack
@@ -311,7 +307,7 @@ module.exports = class BattleManager {
 			const missed = this.calcRandomBool(attack.missChance)
 
 			if (missed) {
-				this.addToActionQueue(author + "'s " +
+				this.addToActionQueue(author.name + "'s " +
 					attack.name + ' missed '
 					+ this.navi.name + '!')
 				continue
@@ -320,7 +316,7 @@ module.exports = class BattleManager {
 			const dmg = this.navi.recieveDamage( damage, new (coreTypeClass( attack.type )) )
 			
 			this.addToActionQueue(
-				author+' dealt '+dmg+' damage to '
+				author.name+' dealt '+dmg+' damage to '
 				+this.navi.name+' using '+attack.name+'!')
 		}
 	}

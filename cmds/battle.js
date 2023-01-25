@@ -1,24 +1,23 @@
 // Imports and Stuff
 const NFM = require('../utils/NaviFileManager')
 const EnemyJson = require('../utils/EnemyList')
-const Enemy = require('../classes/enemy')
-const NaviClass = require('../classes/navi')
-const EmptySpace = require('../classes/EmptySpace')
 const BattleManager = require('../utils/BattleManager')
+
+const { Navi, Enemy, EmptySpace, coreTypeClass } = require('../classes')
 
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 module.exports = async (args) => {
 	// Get the navi (and break the program if you don't)
 	const naviData = await NFM.getNaviWithName( args._[1] )
-	const Navi = new NaviClass( naviData )
+	const navi = new NaviClass( naviData )
 
 	// Randomly get 1 - 5 enemy names from the array
 	const nmeArray = ['EMPTY_SPACE', 'Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']
 	
-	let enemies = [ new Enemy('Mettaur'), new Enemy('Mettaur'), new Enemy('Mettaur') ]
+	let enemies = [ new Enemy('Mettaur'), new Enemy('Swordy'), new Enemy('Mettaur') ]
 
-	const Bttl = new BattleManager(Navi, enemies, true)
+	const Bttl = new BattleManager(navi, enemies, true)
 
 	// Main loop
 	await Bttl.mainLoop()
@@ -27,7 +26,7 @@ module.exports = async (args) => {
 	const bttlOutcome = Bttl.getOutcomeOfBattle()
 
 	// Heal the navi
-	Navi.healStatsFully()
+	navi.healStatsFully()
 
 	// Check the output of the battle
 	switch ( bttlOutcome ) {
@@ -51,7 +50,7 @@ module.exports = async (args) => {
 
 				console.log('You got: ' + chipChosen )
 
-				Navi.chipLibrary.push( chipChosen )
+				navi.chipLibrary.push( chipChosen )
 			}
 			else {
 				// Gain some zenny
@@ -64,10 +63,10 @@ module.exports = async (args) => {
 
 				console.log('You got: ' + zennies + ' zenny')
 
-				Navi.zenny += zennies
+				navi.zenny += zennies
 			}
 
-			await NFM.updateNaviStatsInStorage(Navi.name, naviData)
+			await NFM.updateNaviStatsInStorage(navi.name, naviData)
 
 			break
 		case 'LOST':
