@@ -14,7 +14,7 @@ module.exports = class ViewerUI {
 	addNaviStats(navi) {
 		this.ui.div(
 			{ text: navi.name , align: 'center' },
-			{ text: navi.core , align: 'center' } )
+			{ text: navi.Core.type , align: 'center' } )
 
 		this.ui.div(
 			{ text: 'HP: '+navi.HP+' / '+navi.maxHP , align: 'center' },

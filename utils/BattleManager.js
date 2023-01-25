@@ -1,15 +1,12 @@
 const attackInfo = require('./AttackInfo')
 const getEnemyAttack = require('./EnemyAttacks')
-const EnemyJson = require('../utils/EnemyList')
-const UI = new ( require('../graphics/BattleUI') )( '[\t]', 80 )
+const EmptySpace = require('../classes/EmptySpace')
+const Enemy = require ('../classes/enemy')
+const Navi = require('../classes/navi')
+const coreTypeClass = require('../classes/coreTypes')
+const UI = new ( require('../graphics/BattleUI') )( 80 )
 
 module.exports = class BattleManager {
-
-	// Indicator to show an empty space
-	EMPTY_SPACE = '[\t]'
-
-	// Chance for the enemy to avoid the attack
-	enemyAvoidBonus = 0.4
 	
 	// How likely are you able to escape
 	escapePercent = 0.2
@@ -18,9 +15,10 @@ module.exports = class BattleManager {
 	naviDefendBonus = 0.3
 	enemyDefendBonus = 0.2
 
-	constructor(navi, enemyList, canEscape) {
-		this.navi = navi
-		this.enemyList = BattleManager.getEnemies(enemyList)
+	constructor( Navi, enemyList, canEscape ) {
+		this.navi = Navi
+		this.enemyList = this.renameToUniqueEnemies( enemyList )
+		this.deadEnemyList = []
 
 		// Setting up for being able to escape
 		this.isPossibleToEscape = canEscape
@@ -30,28 +28,24 @@ module.exports = class BattleManager {
 	}
 
 	// Gets an array of enemy names, returns an array of said enemies
-	static getEnemies(enemyList) {
+	renameToUniqueEnemies( enemyList ) {
 		let list = []
 		let enemyCount = {} // Object that will be used to count enemies
 
-		for (const name of enemyList) {
-			// Find the enemy especified
-			const e = EnemyJson(name)
-
-			// And skip to the next name if it doesn't exist
-			if (!e)
+		for (const enemy of enemyList) {
+			if ( enemy instanceof EmptySpace )
 				continue
 
 			// Increase the count of that enemy's occurances
-			if (enemyCount[name] === undefined)
-				enemyCount[name] = 1
-			else enemyCount[name]++
+			if (enemyCount[ enemy.name ] == undefined)
+				enemyCount[ enemy.name ] = 1
+			else enemyCount[ enemy.name ]++
 
 			// Add the number if there's another enemy
-			if (enemyCount[name] > 1)
-				e.name += enemyCount[name]
+			if ( enemyCount[ enemy.name ] > 1 )
+				enemy.name += enemyCount[ enemy.name ]
 
-			list.push(e)
+			list.push( enemy )
 		}
 
 		return list
@@ -63,7 +57,7 @@ module.exports = class BattleManager {
 			
 			// Decide what to do
 			const acts = await UI.showMenuAndAskActions( this.navi, this.enemyList )
-			
+
 			// Do actions
 			switch ( acts.action ) {
 				case 'Attack':
@@ -118,7 +112,7 @@ module.exports = class BattleManager {
 			return 'ESCAPED'
 		else if (this.navi.HP <= 0)
 			return 'LOST'
-		else if (this.enemyList.every( e => e === this.EMPTY_SPACE ))
+		else if ( this.enemyList.every( e => e instanceof EmptySpace ) )
 			return 'WON'
 		else {
 			console.error('Something strange happened during the battle:',
@@ -133,8 +127,19 @@ module.exports = class BattleManager {
 			return true
 		else if ( this.navi.HP <= 0 ) // Player lost
 			return true
-		else if ( this.enemyList.every( e => e === this.EMPTY_SPACE) ) // Player won
+		else if ( this.enemyList.every( e => e instanceof EmptySpace ) ) // Player won
 			return true
+		else return false
+	}
+
+	enemyAvoidsAttack( enemy ) {
+		if ( enemy.isAvoiding ) {
+			if ( enemy.avoidAttack() ) {
+				this.addToActionQueue("But "+enemy.name+" avoided the attack!")
+				return true
+			}
+			else return false
+		}
 		else return false
 	}
 
@@ -143,19 +148,10 @@ module.exports = class BattleManager {
 		const enemy = this.getEspecifiedEnemy(target)
 
 		// check if the target will avoid the attack
-		if (this.isNMEAvoiding[target]) {
-			const missed = this.calcRandomBool(this.enemyAvoidBonus)
-
-			if (missed) {
-				this.addToActionQueue("But "+target+" avoided the attack!")
-				return
-			}
-		}
+		if ( this.enemyAvoidsAttack( enemy ) )
+			return
 		
-		enemy.HP -= this.calcEnemyDamage(10, 'NEUTRAL', enemy.name, enemy.core)
-
-		// Reset avoids
-		this.resetAvoidFlags()
+		enemy.recieveDamage( 10 )
 		
 		this.enemyLifeCheck()
 	}
@@ -163,82 +159,69 @@ module.exports = class BattleManager {
 	// "Cyber Actions" attack
 	naviCyberAttacks(target, cpAttack) {
 		const chip = this.getChipData(cpAttack)
+		const enemy = this.getEspecifiedEnemy(target)
 
 		// check if chip is usable
-		const tmpCPafterUse = this.navi.CP - chip.cpCost
-		if ( tmpCPafterUse < 0) {
+		if ( !this.navi.reduceCP( chip.cpCost ) ) {
 			this.addToActionQueue("But there's not enough Cyber Points to do that!")
 			return
 		}
 
-		// check if the target will avoid the attack
-		if (this.isNMEAvoiding[target]) {
-			const missed = this.calcRandomBool(this.enemyAvoidBonus)
-
-			if (missed) {
-				this.addToActionQueue("But "+target+" avoided the attack!")
-				return
-			}
-		}
-
-		// check chip's target type
-		// do damage to corresponding targets
+		// check chip's target type and do damage to corresponding targets
 		switch (chip.target) {
 			case 'Single':
-				this.doSingleCP(chip, target)
+				this.doSingleCP(chip, enemy)
 				break
 			case 'Triple':
-				this.doTripleCP(chip, target)
+				this.doTripleCP(chip, enemy)
 				break
 			case 'Heal':
 				this.doUseHealChip(chip)
 				break
 		}
 
-		// Reset avoids
-		this.resetAvoidFlags()
-
 		// update stuff
-		this.navi.CP = tmpCPafterUse
 		this.enemyLifeCheck()
 	}
 
 	// Attack with a chip of target type 'Single'
-	doSingleCP(chip, target) {
-		const enemy = this.getEspecifiedEnemy(target)
+	doSingleCP(chip, enemy) {
 
 		// Deal an array of damage to the enemy
 		for (const damage of chip.attackValue) {
-			const dmg = this.calcEnemyDamage(damage, chip.type, enemy.name, enemy.core)
+			if ( this.enemyAvoidsAttack( enemy ) )
+				continue
+
+			const dmg = enemy.recieveDamage( damage, new (coreTypeClass( chip.type )) )
 			
 			this.addToActionQueue(
 				this.navi.name+' dealt '+dmg+' damage to '
-				+target+' using '+chip.name+'!')
-			
-			enemy.HP -= dmg
+				+enemy.name+' using '+chip.name+'!')
 		}
 	}
 
 	// Attack with a chip of target type 'Triple'
-	doTripleCP(chip, target) {
-		const enemy = this.getEspecifiedEnemy(target)
+	doTripleCP(chip, enemy) {
 		const nmeIndex = this.enemyList.indexOf(enemy)
 		let j = 0 // Counter for chip.attackValue
 
 		// Go from the enemy before to the next one
 		for (let i = nmeIndex-1; i <= nmeIndex+1; i++) {
 			// If theres an enemy on this index
-			if (this.enemyList[i] && this.enemyList[i] !== this.EMPTY_SPACE) {
-				const dmg = this.calcEnemyDamage(
-				chip.attackValue[j], chip.type,
-				this.enemyList[i].name,
-				this.enemyList[i].core)
+			if (this.enemyList[i] && this.enemyList[i] instanceof Enemy) {
+				if ( this.enemyAvoidsAttack( enemy ) ) {
+					j++
+					continue
+				}
+
+				const dmg = this.enemyList[i].recieveDamage(
+					chip.attackValue[j],
+					new (coreTypeClass( chip.type ))
+				)
 
 				this.addToActionQueue( this.navi.name +
 					' dealt '+ dmg +' damage to ' + this.enemyList[i].name +
 					' using '+ chip.name + '!')
-
-				this.enemyList[i].HP -= dmg
 			}
 
 			j++
@@ -248,19 +231,14 @@ module.exports = class BattleManager {
 	// Use a 'Heal' target type chip
 	doUseHealChip(chip) {
 		// Heal the navi
-		let newHP = this.navi.HP + chip.attackValue[0]
+		this.navi.healHP( chip.attackValue[0] )
 
-		if (newHP >= this.navi.maxHP) {
+		if ( this.navi.HP >= this.navi.maxHP ) {
 			this.addToActionQueue(
 				this.navi.name+' recovered all their health')
-			newHP = this.navi.maxHP
-		}
-		else {
+		else 
 			this.addToActionQueue(
 				this.navi.name+' recovered '+chip.attackValue[0]+ ' HP')
-		}
-
-		this.navi.HP = newHP
 	}
 
 	// "Defend" action
@@ -298,17 +276,20 @@ module.exports = class BattleManager {
 	// Enemies' turn
 	enemiesTurn() {
 		// Reset every "isNMEDefending" value
-		for (const e in this.isNMEDefending)
-			this.isNMEDefending[e] = false
+		for ( const enemy in this.enemyList )
+			if ( enemy instanceof Enemy ) {
+				enemy.isDefending = false
+				enemy.isAvoiding = false
+			}
 
 		// Let each enemy do their action
 		for (const enemy of this.enemyList) {
 
 			// ..As long as they're not an EMPTY_SPACE
-			if (enemy === this.EMPTY_SPACE)
+			if (enemy instanceof EmptySpace)
 				continue
 
-			const attk = this.chooseNMEAttack(enemy)
+			const attk = enemy.chooseAction()
 			
 			// Switch case in case other common actions are added like fleeing
 			switch (attk) {
@@ -317,14 +298,14 @@ module.exports = class BattleManager {
 					break
 				case 'Defend':
 					this.addToActionQueue(enemy.name+' will defend next turn')
-					this.doEnemyDefend(enemy.name)
+					enemy.isDefending = true
 					break;
 				case 'Dodge':
 					this.addToActionQueue(enemy.name+" will attempt to dodge the next turn's attack")
-					this.doEnemyDodge(enemy.name)
-					break
+					enemy.isAvoiding = true
+					break 
 				default:
-					this.doEnemyAttack(attk, enemy.name)
+					enemy.attack( this.navi, attk )
 			}
 		}
 
@@ -374,19 +355,17 @@ module.exports = class BattleManager {
 				continue
 			}
 
-			const dmg = this.calcNaviDamage(damage, attack.type)
+			const dmg = this.navi.recieveDamage( damage, new (coreTypeClass( attack.type )) )
 			
 			this.addToActionQueue(
 				author+' dealt '+dmg+' damage to '
 				+this.navi.name+' using '+attack.name+'!')
-			
-			this.navi.HP -= dmg
 		}
 	}
 
 	doEnemyDefend(name) {
 		// Next turn this enemy's damage will be less
-		this.isNMEDefending[name] = true
+		this.getEspecifiedEnemy(name).isDefending = true
 	}
 
 	doEnemyDodge(name) {
@@ -406,50 +385,19 @@ module.exports = class BattleManager {
 	// this.enemyList is modified to its normal state
 	// minus the enemies which have 0 or less hp
 	enemyLifeCheck() {
-		this.enemyList.forEach( e => {
-			if (e.HP <= 0) {
-				this.addToActionQueue(e.name +' was deleted!')
-				const index = this.enemyList.findIndex(i => i.name === e.name)
 
-				this.enemyList.splice(index, 1, this.EMPTY_SPACE)
+		this.enemyList.forEach( e => {
+			if ( e instanceof Enemy && e.HP <= 0) {
+				this.addToActionQueue(e.name +' was deleted!')
+
+				// Save the enemy for later use
+				this.deadEnemyList.push( e )
+
+				// And remove them from battle
+				const index = this.enemyList.indexOf(e)
+				this.enemyList.splice(index, 1, new EmptySpace() )
 			}
 		} )
-	}
-
-	// Enemies are no longer avoiding
-	resetAvoidFlags() {
-		for (let e in this.isNMEAvoiding)
-			e = false
-	}
-
-	// Calculate the damage done to the navi
-	// Including factors like weaknesses and defend actions
-	calcNaviDamage(dmg, core) {
-		let total = dmg
-		
-		// Apply weakness value
-		if ( this.isItWeakTo( this.navi.core , core ) )
-			total *= 2
-
-		// Subtract damage if navi defends
-		if ( this.isNaviDefending )
-			total = Math.round( total * (1 - this.naviDefendBonus) )
-
-		return total
-	}
-
-	calcEnemyDamage(dmg, core, enemyName, enemyCore) {
-		let total = dmg
-		
-		// Apply weakness value
-		if ( this.isItWeakTo( enemyCore , core ) )
-			total *= 2
-
-		// Subtract damage if navi defends
-		if ( this.isNMEDefending[enemyName] )
-			total = Math.round( total * (1 - this.enemyDefendBonus) )
-
-		return total
 	}
 
 	// Based on a float value between 0 and 1 return a random boolean

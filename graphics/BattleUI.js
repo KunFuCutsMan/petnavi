@@ -1,7 +1,9 @@
 const Enquirer = require('enquirer')
 
 const ViewerUI = require('./ViewerUI')
-const attackInfo = require('../utils/AttackInfo')
+const EmptySpace = require('../classes/EmptySpace')
+const attackInfo = require('../utils/attackInfo')
+const Enemy = require('../classes/enemy')
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 /**
@@ -10,9 +12,8 @@ const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 */
 module.exports = class BattleUI extends ViewerUI {
 
-	constructor( empty, w = 60 ) {
+	constructor( w = 80 ) {
 		super(w)
-		this.EMPTY_SPACE = empty
 		this.enq = new Enquirer()
 		this.enq.register( 'selectAfterText', require('./enquirer/SelectAfterText') )
 	}
@@ -26,6 +27,13 @@ module.exports = class BattleUI extends ViewerUI {
 		const normalizedChipChoices = navi.CPattacks.map( c => {
 			return { message: c, value: c }
 		} )
+
+		// Normalize the choice array of targets
+		const normalizedEnemyChoices = enemyList
+			.filter( e => e instanceof Enemy)
+			.map( e => {
+				return { message: e.name, value: e.name }
+			} )
 
 		return await this.enq.prompt([
 			{
@@ -53,7 +61,7 @@ module.exports = class BattleUI extends ViewerUI {
 				type: 'select',
 				name: 'target',
 				message: 'Aim at',
-				choices: enemyList.filter( i => i !== this.EMPTY_SPACE),
+				choices: normalizedEnemyChoices,
 				
 				skip: function() {
 					const chip = attackInfo( this.state.answers['cpattk'] )
@@ -94,10 +102,14 @@ module.exports = class BattleUI extends ViewerUI {
 	
 	addEnemyListUI(eList) {
 		for (const enemy of eList) {
-			let r1 = { text: '[        ]', align: 'left', padding: [0, 0, 0, 8] }
-			let r2 = { text: '[        ]', align: 'left' }
+			let r1 = { align: 'left', padding: [0, 0, 0, 8] }
+			let r2 = { align: 'left' }
 
-			if (enemy !== this.EMPTY_SPACE) {
+			if (enemy instanceof EmptySpace) {
+				r1.text = enemy.toString()
+				r2.text = enemy.toString()
+			}
+			else if ( enemy instanceof Enemy ) {
 				r1.text = enemy.name
 				r2.text = 'HP: ' + enemy.HP +' / '+ enemy.maxHP
 			}

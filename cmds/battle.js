@@ -1,24 +1,24 @@
 // Imports and Stuff
 const NFM = require('../utils/NaviFileManager')
 const EnemyJson = require('../utils/EnemyList')
+const Enemy = require('../classes/enemy')
+const NaviClass = require('../classes/navi')
+const EmptySpace = require('../classes/EmptySpace')
 const BattleManager = require('../utils/BattleManager')
 
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 module.exports = async (args) => {
 	// Get the navi (and break the program if you don't)
-	const navi = await NFM.getNaviWithName( args._[1] )
+	const naviData = await NFM.getNaviWithName( args._[1] )
+	const Navi = new NaviClass( naviData )
 
 	// Randomly get 1 - 5 enemy names from the array
-	const nmeArray = ['Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']
+	const nmeArray = ['EMPTY_SPACE', 'Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']
 	
-	let enemies = []
-	for (let i = 0; i < Math.ceil( Math.random() * 5 ); i++) {
-		const j = Math.floor( Math.random() * nmeArray.length )
-		enemies.push(nmeArray[j])
-	}
+	let enemies = [ new Enemy('Mettaur'), new Enemy('Mettaur'), new Enemy('Mettaur') ]
 
-	const Bttl = new BattleManager(navi, enemies, true)
+	const Bttl = new BattleManager(Navi, enemies, true)
 
 	// Main loop
 	await Bttl.mainLoop()
@@ -27,8 +27,7 @@ module.exports = async (args) => {
 	const bttlOutcome = Bttl.getOutcomeOfBattle()
 
 	// Heal the navi
-	Bttl.navi.HP = Bttl.navi.maxHP
-	Bttl.navi.CP = Bttl.navi.maxCP
+	Navi.healStatsFully()
 
 	// Check the output of the battle
 	switch ( bttlOutcome ) {
@@ -43,9 +42,8 @@ module.exports = async (args) => {
 				// Drop a chip
 				let chipsAvailable = [];
 				
-				for (const name of enemies) {
-					const nme = EnemyJson(name)
-					chipsAvailable = chipsAvailable.concat(nme.drops)
+				for (const enemy of Bttl.deadEnemyList) {
+					chipsAvailable = chipsAvailable.concat( enemy.drops )
 				}
 
 				const j = Math.floor( Math.random() * chipsAvailable.length )
@@ -53,24 +51,23 @@ module.exports = async (args) => {
 
 				console.log('You got: ' + chipChosen )
 
-				navi.chipLibrary.push( chipChosen )
+				Navi.chipLibrary.push( chipChosen )
 			}
 			else {
 				// Gain some zenny
 				zennies = 0
-				for (const name of enemies) {
-					const nme = EnemyJson(name)
-					zennies += nme.maxHP
+				for (const enemy of Bttl.deadEnemyList) {
+					zennies += enemy.maxHP
 				}
 
 				zennies *= 5
 
 				console.log('You got: ' + zennies + ' zenny')
 
-				navi.zenny += zennies
+				Navi.zenny += zennies
 			}
 
-			await NFM.updateNaviStatsInStorage(navi.name, navi)
+			await NFM.updateNaviStatsInStorage(Navi.name, naviData)
 
 			break
 		case 'LOST':

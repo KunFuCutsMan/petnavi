@@ -5,6 +5,7 @@ const getEnemyAttack = require('../utils/EnemyAttacks')
 module.exports = class Enemy {
 
 	DEFEND_BONUS = 0.2
+	AVOID_BONUS = 0.4
 
 	constructor( name ) {
 		// Get the stats from said enemy
@@ -12,7 +13,7 @@ module.exports = class Enemy {
 
 		// Properties from the json
 		this.name = data.name
-		this.Core = new  coreTypeClass( data.core )
+		this.Core = new (coreTypeClass( data.core ))
 		this.maxHP = data.maxHP
 		this.HP = data.HP
 		this.CPattacks = data.CPattacks
@@ -41,6 +42,8 @@ module.exports = class Enemy {
 		// And do the damage given
 		this.HP -= dmg
 		if ( this.HP < 0 ) this.HP = 0
+
+		return dmg
 	}
 
 	chooseAction() {
@@ -58,7 +61,7 @@ module.exports = class Enemy {
 				this.secuence = [ ...this.CPattacks[i] ]
 				action = this.secuence.shift()
 			}
-			else action = enemy.CPattacks[i]
+			else action = this.CPattacks[i]
 		}
 
 		return action
@@ -76,6 +79,10 @@ module.exports = class Enemy {
 
 			Navi.recieveDamage( damage, new coreTypeClass( attack.type ) )
 		}
+	}
+
+	avoidAttack() {
+		return this.calcRandomBool( this.AVOID_BONUS )
 	}
 
 	calcRandomBool(float) {

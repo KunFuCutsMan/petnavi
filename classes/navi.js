@@ -1,4 +1,5 @@
 const getAttackChip = require('../utils/AttackInfo')
+const coreTypeClass = require('./coreTypes')
 
 module.exports = class Navi {
 
@@ -10,7 +11,7 @@ module.exports = class Navi {
 		// Properties from json
 		this.name = naviJson.name
 		this.level = naviJson.level
-		this.core = naviJson.core
+		this.Core = new ( coreTypeClass( naviJson.core ) )
 		this.maxHP = naviJson.maxHP
 		this.HP = naviJson.HP
 		this.maxCP = naviJson.maxCP
@@ -28,6 +29,7 @@ module.exports = class Navi {
 	recieveDamage( damage, Core = 'NEUTRAL' ) {
 		let dmg = damage
 
+		console.log(Core)
 		// If a core was given, and its not a NEUTRAL type,
 		// calculate its the damage bonus if it applies
 		if ( Core !== 'NEUTRAL' && Core.type !== 'NEUTRAL' ) {
@@ -36,17 +38,38 @@ module.exports = class Navi {
 				: dmg
 		}
 
-		if ( this.isNaviDefending )
+		if ( this.isDefending )
 			dmg = Math.round( dmg * (1 - this.DEFEND_BONUS ) )
 
 		// And do the damage given
 		this.HP -= dmg
 		if ( this.HP < 0 ) this.HP = 0
+
+		return dmg
+	}
+
+	healStatsFully() {
+		this.healHP( this.maxHP )
+		this.healCP( this.maxCP )
 	}
 
 	healHP( HP ) {
 		this.HP += HP
 		if ( this.HP > this.maxHP ) { this.HP = this.maxHP }
+	}
+
+	healCP( CP ) {
+		this.CP += CP
+		if ( this.CP > this.maxCP ) { this.CP = this.maxCP }
+	}
+
+	reduceCP( CP ) {
+		this.CP -= CP
+		if ( this.CP < 0 ) {
+			this.CP += CP
+			return false
+		}
+		else return true
 	}
 
 	attack( Enemy, attackName ) {
