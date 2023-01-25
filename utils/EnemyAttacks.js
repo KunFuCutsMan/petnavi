@@ -52,13 +52,13 @@ let json = {
 	},
 	AquaSword: function() {
 		this.name = 'AquaSword' 
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.attackValue = [100]
 		this.missChance = 0.1
 	},
 	AquaBlade: function() {
 		this.name = 'AquaBlade' 
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.attackValue = [110]
 		this.missChance = 0.1
 	},
@@ -118,19 +118,19 @@ let json = {
 	},
 	TriArrow: function() {
 		this.name = 'TriArrow' 
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.attackValue = [20, 20, 20]
 		this.missChance = 0.5
 	},
 	TriSpear: function() {
 		this.name = 'TriSpear' 
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.attackValue = [40, 40, 40]
 		this.missChance = 0.5
 	},
 	TriLance: function() {
 		this.name = 'TriLance' 
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.attackValue = [60, 60, 60]
 		this.missChance = 0.5
 	},

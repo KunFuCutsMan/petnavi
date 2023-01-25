@@ -126,7 +126,7 @@ var json = {
 	},
 	AquaSword: function() {
 		this.name = 'AquaSword'
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.cpCost = 12
 		this.target = 'High'
 		this.attackValue = [120, 120]
@@ -134,7 +134,7 @@ var json = {
 	},
 	AquaBlade: function() {
 		this.name = 'AquaBlade'
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.cpCost = 12
 		this.target = 'Low'
 		this.attackValue = [120, 120]
@@ -214,7 +214,7 @@ var json = {
 	},
 	TriArrow: function() {
 		this.name = 'TriArrow'
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.cpCost = 9
 		this.target = 'Single'
 		this.attackValue = [30, 30, 30]
@@ -222,7 +222,7 @@ var json = {
 	},
 	TriSpear: function() {
 		this.name = 'TriSpear'
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.cpCost = 14
 		this.target = 'Single'
 		this.attackValue = [40, 40, 40, 40]
@@ -230,7 +230,7 @@ var json = {
 	},
 	TriLance: function() {
 		this.name = 'TriLance'
-		this.type = 'AQUA'
+		this.type = 'WATER'
 		this.cpCost = 18
 		this.target = 'Single'
 		this.attackValue = [50, 50, 50, 50, 50]

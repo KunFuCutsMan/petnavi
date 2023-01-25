@@ -3,17 +3,6 @@ const getEnemyAttack = require('./EnemyAttacks')
 const EnemyJson = require('../utils/EnemyList')
 const UI = new ( require('../graphics/BattleUI') )( '[\t]', 80 )
 
-TypeWeaknessJson = {
-	'FIRE': ['WATER', 'WIND'],
-	'WOOD': ['FIRE', 'SWORD'],
-	'ELEC': ['WOOD', 'BREAK'],
-	'AQUA': ['ELEC', 'TARGET'],
-	'SWORD': ['BREAK', 'ELEC'],
-	'WIND': ['SWORD', 'WOOD'],
-	'TARGET': ['WIND', 'FIRE'],
-	'BREAK': ['TARGET', 'WATER']
-}
-
 module.exports = class BattleManager {
 
 	// Indicator to show an empty space
@@ -36,24 +25,6 @@ module.exports = class BattleManager {
 		// Setting up for being able to escape
 		this.isPossibleToEscape = canEscape
 		this.isEscaped = false
-
-		// Defend flags
-		this.isNaviDefending = false
-		this.isNMEDefending = {}
-
-		this.enemyList.forEach( e => {
-			this.isNMEDefending[e.name] = false
-		} )
-
-		// Avoid flags
-		this.isNMEAvoiding = {}
-		this.enemyList.forEach( e => {
-			this.isNMEAvoiding[e.name] = false
-		} )
-
-
-		// Navis can recover 20% of their CP
-		this.CPrecoveryBonus = Math.ceil(this.navi.maxCP / 5)
 
 		this.actionQueue = []
 	}
@@ -165,16 +136,6 @@ module.exports = class BattleManager {
 		else if ( this.enemyList.every( e => e === this.EMPTY_SPACE) ) // Player won
 			return true
 		else return false
-	}
-
-	// Is [victimCore] weak to [dmgCore] ?
-	isItWeakTo( victimCore, dmgCore ) {
-		let flag = false
-		
-		if (victimCore !== 'NEUTRAL' && dmgCore !== 'NEUTRAL')
-			flag = TypeWeaknessJson[victimCore].includes(dmgCore)
-		
-		return flag
 	}
 
 	// "Attack" action
