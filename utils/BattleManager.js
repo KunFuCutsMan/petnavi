@@ -10,10 +10,6 @@ module.exports = class BattleManager {
 	
 	// How likely are you able to escape
 	escapePercent = 0.2
-	
-	// How much will everyone defend from an attack
-	naviDefendBonus = 0.3
-	enemyDefendBonus = 0.2
 
 	constructor( Navi, enemyList, canEscape ) {
 		this.navi = Navi
@@ -97,15 +93,6 @@ module.exports = class BattleManager {
 		} )
 	}
 
-	// Get the data of the chip based on the name provided
-	getChipData(name) {
-		const chip = attackInfo(name)
-
-		if (chip)
-			return chip
-		else return {}
-	}
-
 	// Get the outcome of the battle
 	getOutcomeOfBattle() {
 		if (this.isEscaped)
@@ -158,7 +145,7 @@ module.exports = class BattleManager {
 
 	// "Cyber Actions" attack
 	naviCyberAttacks(target, cpAttack) {
-		const chip = this.getChipData(cpAttack)
+		const chip = attackInfo(cpAttack)
 		const enemy = this.getEspecifiedEnemy(target)
 
 		// check if chip is usable
@@ -313,31 +300,6 @@ module.exports = class BattleManager {
 		this.isNaviDefending = false
 	}
 
-	// Choose a pattern on the enemy's CPattacks list
-	chooseNMEAttack(enemy) {
-		let action = ''
-
-		// Get action from secuence if there's one active
-		if (enemy.secuence.length > 0)
-			action = enemy.secuence.shift()
-
-		// Choose action todo (if no secuence)
-		if (!action) {
-			// Choose an index
-			const i = Math.floor( Math.random() * enemy.CPattacks.length )
-			
-			// If its a secuence then copy it to enemy.secuence and use it
-			if ( Array.isArray(enemy.CPattacks[i]) ) {
-				enemy.secuence = enemy.CPattacks[i].map( i => i )
-				action = enemy.secuence.shift()
-			}
-			else
-				action = enemy.CPattacks[i]
-		}
-
-		return action
-	}
-
 	// Let that enemy attack
 	doEnemyAttack(attk, author) {
 		const attack = getEnemyAttack(attk)
@@ -361,16 +323,6 @@ module.exports = class BattleManager {
 				author+' dealt '+dmg+' damage to '
 				+this.navi.name+' using '+attack.name+'!')
 		}
-	}
-
-	doEnemyDefend(name) {
-		// Next turn this enemy's damage will be less
-		this.getEspecifiedEnemy(name).isDefending = true
-	}
-
-	doEnemyDodge(name) {
-		// Next turn this enemy may avoid the attack
-		this.isNMEAvoiding[name] = true
 	}
 
 	// Add a string to the turn's queue
