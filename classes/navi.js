@@ -16,14 +16,38 @@ module.exports = class Navi {
 		this.HP = naviJson.HP
 		this.maxCP = naviJson.maxCP
 		this.CP = naviJson.CP
-		this.CPattacks = naviJson.CPattacks
+		this.CPattacks = [ ...naviJson.CPattacks ]
 		this.willBeDeleted = naviJson.willBeDeleted
 		this.dir = naviJson.dir
 		this.zenny = naviJson.zenny
-		this.chipLibrary = naviJson.chipLibrary
+		this.chipLibrary = [ ...naviJson.chipLibrary ]
 
 		// Properties from the class
 		this.isDefending = false
+	}
+
+	isCPattacksFull() {
+		return this.CPattacks.length >= 12
+	}
+
+	addToCPattacks( string ) {
+		this.CPattacks.push( string )
+	}
+
+	addToChipLibrary( string ) {
+		this.chipLibrary.push( string )
+	}
+
+	popChipLibraryWithIndex( index ) {
+		return this.chipLibrary.splice( index, 1 )[0]
+	}
+
+	switchCPAttackWithChipInLibrary( idxCPattack, idxLibrary ) {
+
+		const chipFromCP = this.CPattacks[ idxCPattack ]
+		
+		const chipFromLibrary = this.chipLibrary.splice( idxLibrary, 1, chipFromCP )[0]
+		this.CPattacks.splice( idxCPattack, 1, chipFromLibrary )
 	}
 
 	recieveDamage( damage, Core = 'NEUTRAL' ) {
@@ -86,6 +110,25 @@ module.exports = class Navi {
 
 	calcRandomBool(float) {
 		return Math.random() <= float
+	}
+
+	toData() {
+		const data = {
+			name: this.name,
+			level: this.level,
+			core: this.Core.type,
+			maxHP: this.maxHP,
+			HP: this.HP,
+			maxCP: this.maxCP,
+			CP: this.CP,
+			CPattacks: [ ...this.CPattacks ],
+			willBeDeleted: this.willBeDeleted,
+			dir: this.dir,
+			zenny: this.zenny,
+			chipLibrary: [ ...this.chipLibrary ]
+		}
+
+		return data
 	}
 
 	get defendCPBonus() {

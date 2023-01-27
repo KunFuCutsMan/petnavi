@@ -46,93 +46,56 @@ module.exports = class ChipUI extends ViewerUI {
 
 	async askAboutSwappingChips( navi ) {
 
-		const amountOfInstances = this.countInstancesInArray( navi.chipLibrary )
-		
-		// Get all the chips that the navi has
-		const libraryValues = []
-		for (const chip in amountOfInstances) {
-			libraryValues.push({
-				name: chip, value: chip,
-				message:  chip + ' x' + amountOfInstances[chip],
-			})
-		}
-
-		// And the index of the chip to be swapped, if it happens
-		const cpattksIndexes = []
-		let i = 0;
-		for (const chipName of navi.CPattacks) {
-			cpattksIndexes.push({
-				name: chipName + i,
-				message: chipName,
-				value: '' + i + ''
-			})
-			i++
-		}
-
 		const answers = await this.enq.prompt([
 			{
 				type: 'select',
-				name: 'chipAdded',
+				name: 'positionChipLibrary',
 				message: 'What chip would you like to add?',
-				choices: libraryValues
+				choices: this.toChoiceArray( navi.chipLibrary ),
+				result() {
+					return this.focused.value
+				}
 			}, {
 				type: 'selectaftertext',
-				name: 'chipToSwap',
+				name: 'positionChipCPattk',
 				textToShow: 'You cannot use more than 12 chips in a folder',
 				message: "Select one chip to swap it with",
-				choices: cpattksIndexes,
-				skip: cpattksIndexes.length < 12,
+				choices: this.toChoiceArray( navi.CPattacks ),
+				skip: !navi.isCPattacksFull(),
+				result() {
+					return this.focused.value
+				}
 			}
 		])
-
-		this.changeOrAddChips( answers, navi, cpattksIndexes )
+		
+		this.changeOrAddChips( answers, navi )
 	}
 
-	countInstancesInArray(array) {
-		const countObj = {}
-		
-		for (const thing of array) {
-			if ( countObj[thing] == undefined )
-				countObj[thing] = 1
-			else countObj[thing]++
+	toChoiceArray( array ) {
+		const choiceArray = []
+		for (let i = 0; i < array.length; i++) {
+			choiceArray.push({
+				name: array[i] + '-' + i,
+				message: array[i],
+				value: i + 1 // For some reason enquirer breaks on a value of 0
+			})
 		}
 
-		return countObj
+		return choiceArray
 	}
 
-	changeOrAddChips(answers, navi, cpattksIndexes) {
+	changeOrAddChips(ans, navi) {
 	
-		if ( navi.CPattacks.length < 12 ) {
+		if ( !navi.isCPattacksFull() ) {
 			// Add the chip
-			navi.CPattacks.push( answers.chipAdded )
+			navi.addToCPattacks( navi.popChipLibraryWithIndex( ans.positionChipLibrary - 1 ) )
 		}
 		else {
-			const idxToSwap = this.findIndexOf( cpattksIndexes, answers.chipToSwap )
-
-			// Swap the chip
-			const oldChip = this.swapThingInArray(
-				idxToSwap,
-				answers.chipAdded,
-				navi.CPattacks )
-
-			// And add the old chip to the library
-			navi.chipLibrary.push( oldChip )
+			// Accounting for the 0 value bug in enquirer
+			navi.switchCPAttackWithChipInLibrary(
+				ans.positionChipCPattk - 1,
+				ans.positionChipLibrary - 1)
 		}
-	}
-
-	swapThingInArray(idx, newThing, list) {
-		for (let i = 0; i < list.length; i++) {
-			if ( idx == i ) {
-				const oldThing = list[i]
-				list[i] = newThing
-				return oldThing
-			}
-			else continue
-		}
-	}
-
-	findIndexOf( array, name ) {
-		return array.findIndex( i => i.name == name )
 	}
 
 	addNaviChipDetails(cpattks) {
