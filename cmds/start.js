@@ -53,6 +53,7 @@ module.exports = async (args) => {
 	const enquirer = new Enquirer()
 	enquirer.register('inputAfterText', require('../graphics/enquirer/InputAfterText') )
 	enquirer.register('selectAfterText', require('../graphics/enquirer/SelectAfterText') )
+	enquirer.register('confirmAfterText', require('../graphics/enquirer/ConfirmAfterText') )
 
 	const answers = await enquirer.prompt([
 		{
@@ -62,7 +63,7 @@ module.exports = async (args) => {
 			textToShow: (!boolSkipText) ? introText.join('\n') : '',
 			result: function(value) {
 				value = value.replace(/\s+/gm,'')
-				firstLetter = value.charAt(0).toUpperCase()
+				const firstLetter = value.charAt(0).toUpperCase()
 				return firstLetter + value.slice(1)
 			}
 		}, {
@@ -71,7 +72,7 @@ module.exports = async (args) => {
 			message: 'What is the type or your navi (can be changed later) ?',
 			textToShow: (!boolSkipText) ? coreTypeText.join('\n') : '',
 			choices: [
-				'NEUTRAL', 'FIRE', 'WOOD', 'ELEC', 'AQUA',
+				'NEUTRAL', 'FIRE', 'WOOD', 'ELEC', 'WATER',
 				'SWORD', 'WIND', 'TARGET', 'BREAK'
 			],
 				default: 0,

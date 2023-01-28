@@ -14,8 +14,10 @@ class ConfirmAfterText extends Confirm {
 
     	let promptLine = [prefix, msg, hint, sep].filter(Boolean).join(' ');
 
-		this.clear(size);
+		this.clear( this.state.size );
     	this.write( [this.teextToShow, promptLine].join('\n') );
     	this.restore();
 	}
 }
+
+module.exports = ConfirmAfterText

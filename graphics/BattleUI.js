@@ -1,9 +1,8 @@
 const Enquirer = require('enquirer')
 
 const ViewerUI = require('./ViewerUI')
-const EmptySpace = require('../classes/EmptySpace')
 const attackInfo = require('../utils/attackInfo')
-const Enemy = require('../classes/enemy')
+const { Enemy, EmptySpace } = require('../classes')
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 /**
