@@ -85,8 +85,8 @@ function NaviFileManager() {
 
 	// Make a navi file with the name, lvl and core as the arguments
 	this.makeNewNavi = async function(name, lvl, core) {
-		hp = lvl * 10
-		cp = lvl * 2
+		const hp = lvl * 10
+		const cp = lvl * 2
 
 		const navi = new Object( NAVI_TEMPLATE )
 		navi.name = name + '.EXE'

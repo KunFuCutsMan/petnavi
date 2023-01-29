@@ -10,7 +10,7 @@ const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 module.exports = async (args) => {
 	// Get the navi (and break the program if you don't)
 	const naviData = await NFM.getNaviWithName( args._[1] )
-	const navi = new NaviClass( naviData )
+	const navi = new Navi( naviData )
 
 	// Randomly get 1 - 5 enemy names from the array
 	const nmeArray = ['EMPTY_SPACE', 'Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']
@@ -54,7 +54,7 @@ module.exports = async (args) => {
 			}
 			else {
 				// Gain some zenny
-				zennies = 0
+				let zennies = 0
 				for (const enemy of Bttl.deadEnemyList) {
 					zennies += enemy.maxHP
 				}

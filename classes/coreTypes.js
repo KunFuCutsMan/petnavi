@@ -1,5 +1,5 @@
 
-weaknessChain = {
+const weaknessChain = {
 	'FIRE': ['WATER', 'WIND'],
 	'WOOD': ['FIRE', 'SWORD'],
 	'ELEC': ['WOOD', 'BREAK'],
@@ -10,7 +10,7 @@ weaknessChain = {
 	'BREAK': ['TARGET', 'WATER']
 }
 
-strengthChain = {
+const strengthChain = {
 	'FIRE': ['WOOD', 'TARGET'],
 	'WOOD': ['ELEC', 'WIND'],
 	'ELEC': ['WATER', 'SWORD'],
