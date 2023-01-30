@@ -26,7 +26,7 @@ module.exports = class PaginatorUI extends ViewerUI {
 			name: 'action',
 			message: 'Show:',
 			textToShow: this.getPaginatorList(),
-			choices: ['Previous Page', 'Next Page', 'Back']
+			choices: ['Previous Page', 'Next Page', {role: 'separator'} , 'Back']
 		})
 
 		const pag_info = this.paginator.build( this.list.length, this.currentPage )
