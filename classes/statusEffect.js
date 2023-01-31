@@ -67,8 +67,7 @@ class StunnedStatus extends Status {
 
 	constructor() {
 		super('STUNNED')
-		this.isActive = false
-		this.counter = 1
+		this.counter = 2
 	}
 }
 
