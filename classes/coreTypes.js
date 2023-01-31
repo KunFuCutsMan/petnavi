@@ -83,7 +83,7 @@ module.exports = function coreTypeClass( type ) {
 		case 'WATER': return WaterCore
 		case 'ELEC': return ElecCore
 		case 'SWORD': return SwordCore
-		case 'WindCore': return WindCore
+		case 'WIND': return WindCore
 		case 'TARGET': return TargetCore
 		case 'BREAK': return BreakCore
 	}
