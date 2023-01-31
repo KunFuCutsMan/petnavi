@@ -1,4 +1,5 @@
 const UI = require('cliui')
+const colorFromType = require('./colorFromType')
 
 /**
  * ViewerUI will be parent class of all other UI classes
@@ -12,9 +13,11 @@ module.exports = class ViewerUI {
 	}
 
 	addNaviStats(navi) {
+		const color = colorFromType( navi.Core.type )
+
 		this.ui.div(
-			{ text: navi.name , align: 'center' },
-			{ text: navi.Core.type , align: 'center' } )
+			{ text: color( navi.name ) , align: 'center' },
+			{ text: color( navi.Core.type ) , align: 'center' } )
 
 		this.ui.div(
 			{ text: 'HP: '+navi.HP+' / '+navi.maxHP , align: 'center' },
@@ -25,9 +28,11 @@ module.exports = class ViewerUI {
 		const cntCPattks = this.countThingInArray( navi.CPattacks )
 		const cntLibrary = this.countThingInArray( navi.chipLibrary )
 
+		const color = colorFromType( navi.Core.type )
+
 		this.ui.div(
-			{ text:'= FOLDER =', align: 'center' },
-			{ text: '= LIBRARY =', align: 'center' })
+			{ text: color('= FOLDER ='), align: 'center' },
+			{ text: color('= LIBRARY ='), align: 'center' })
 
 		this.ui.div(
 			{text: this.strColumnChips( cntCPattks ), align: 'left', padding: [0, 0, 0, 8]},

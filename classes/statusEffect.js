@@ -1,3 +1,4 @@
+const c = require('ansi-colors')
 
 class Status {
 
@@ -6,6 +7,7 @@ class Status {
 	constructor( status ) {
 		this.status = status
 		this.counter = 0
+		this.symbol = ''
 	}
 
 	decreaseCounter() {
@@ -24,6 +26,7 @@ class DefendedStatus extends Status {
 
 	constructor() {
 		super('DEFENDED')
+		this.symbol = c.bold.gray('■')
 	}
 
 	getDefendDmg( dmg ) {
@@ -37,6 +40,7 @@ class AvoidedStatus extends Status {
 
 	constructor() {
 		super('AVOIDED')
+		this.symbol = c.bold.cyan('○')
 	}
 
 	avoids() {
@@ -56,6 +60,7 @@ class BurnedStatus extends Status {
 		super('BURNED')
 		this.isActive = false
 		this.counter = 1
+		this.symbol = c.bold.red('▲')
 	}
 
 	burn() {
@@ -68,6 +73,7 @@ class StunnedStatus extends Status {
 	constructor() {
 		super('STUNNED')
 		this.counter = 2
+		this.symbol = c.bold.yellow('*')
 	}
 }
 

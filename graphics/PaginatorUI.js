@@ -2,6 +2,7 @@ const Enquirer = require('enquirer')
 const Paginator = require('paginator')
 
 const attackInfo = require('../utils/AttackInfo')
+const colorFromType = require('./colorFromType')
 const ViewerUI = require('./ViewerUI')
 
 module.exports = class PaginatorUI extends ViewerUI {
@@ -66,12 +67,15 @@ module.exports = class PaginatorUI extends ViewerUI {
 		
 		for (let i = pag_info.first_result; i <= pag_info.last_result; i++) {
 			const chip = attackInfo( this.list[i] )
+
+			const color = colorFromType( chip.type )
+
 			this.ui.div(
 				{text: (i+1), align: 'center'},
-				{text: chip.type, align: 'left' },
-				{text: chip.name, align: 'left'},
-				{text: chip.target, align: 'left'},
-				{text: chip.attackValue.reduce( (c, i) => c += ' ' + i ),
+				{text: color( chip.type ), align: 'left' },
+				{text: color( chip.name ), align: 'left'},
+				{text: color( chip.target ), align: 'left'},
+				{text: color( chip.attackValue.reduce( (c, i) => c += ' ' + i ) ),
 					align: 'center', padding: [0, 4, 0, 0] },
 			)
 		}

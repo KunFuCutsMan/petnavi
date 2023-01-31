@@ -1,7 +1,9 @@
 const Enquirer = require('enquirer')
+const c = require('ansi-colors')
 
 const ViewerUI = require('./ViewerUI')
 const attackInfo = require('../utils/attackInfo')
+const colorFromType = require('./colorFromType')
 const { Enemy, EmptySpace } = require('../classes')
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
@@ -78,13 +80,13 @@ module.exports = class BattleUI extends ViewerUI {
 
 	async logActionQueue(aq, isOver) {
 		for (const str of aq) {
-			console.log('> '+str)
+			console.log( c.dim.green('›') + ' ' + str)
 			await sleep(750)
 		}
 
 		// Let the player read what happened
 		if ( !isOver )
-			await sleep(1500)
+			await sleep()
 	}
 
 	countInstancesInArray(array) {
@@ -102,19 +104,41 @@ module.exports = class BattleUI extends ViewerUI {
 	addEnemyListUI(eList) {
 		for (const enemy of eList) {
 			let r1 = { align: 'left', padding: [0, 0, 0, 8] }
-			let r2 = { align: 'left' }
+			let r2 = { align: 'right', padding: [0, 2, 0, 0] }
+			let r3 = { text: '', align: 'left', padding: [0, 0, 0, 2] }
 
 			if (enemy instanceof EmptySpace) {
 				r1.text = enemy.toString()
 				r2.text = enemy.toString()
 			}
 			else if ( enemy instanceof Enemy ) {
-				r1.text = enemy.name
-				r2.text = 'HP: ' + enemy.HP +' / '+ enemy.maxHP
+				const color = colorFromType( enemy.Core.type )
+
+				r1.text = color( enemy.name )
+				r2.text = color( 'HP: ' + enemy.HP +' / '+ enemy.maxHP )
+				r3.text = this.enemyStatusStr( enemy.statusList )
 			}
 			
-			this.ui.div( r1, r2 )
+			this.ui.div( r1, r2, r3 )
 		}
+	}
+
+	enemyStatusStr( statHash ) {
+		let str = ''
+
+		for (const stat in statHash) {
+
+			let c = statHash[stat].counter
+
+			while(c >= 0) {
+				str += statHash[stat].symbol
+				c--
+			}
+
+			str += ' '
+		}
+
+		return str
 	}
 
 	getBattleUI(navi, enemyList) {

@@ -202,7 +202,7 @@ var json = {
 	},
 	Piranha: function() {
 		this.name = 'Piranha'
-		this.core = 'AQUA'
+		this.core = 'WATER'
 		this.maxHP = 70
 		this.HP = 70
 		this.CPattacks = [
@@ -214,7 +214,7 @@ var json = {
 	},
 	Piranhas: function() {
 		this.name = 'Piranhas'
-		this.core = 'AQUA'
+		this.core = 'WATER'
 		this.maxHP = 120
 		this.HP = 120
 		this.CPattacks = [
@@ -226,7 +226,7 @@ var json = {
 	},
 	Piranhar: function() {
 		this.name = 'Piranhar'
-		this.core = 'AQUA'
+		this.core = 'WATER'
 		this.maxHP = 150
 		this.HP = 150
 		this.CPattacks = [

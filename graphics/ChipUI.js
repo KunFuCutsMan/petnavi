@@ -3,6 +3,7 @@ const Enquirer = require('enquirer')
 const attackInfo = require('../utils/AttackInfo')
 const PaginatorUI = require('./PaginatorUI')
 const ViewerUI = require('./ViewerUI')
+const colorFromType = require('./colorFromType')
 
 const sleep = async ( ms = 2000 ) => new Promise( r => setTimeout(r, ms) )
 
@@ -112,12 +113,14 @@ module.exports = class ChipUI extends ViewerUI {
 			const chip = attackInfo(chipName)
 			i++;
 
+			const color = colorFromType( chip.type )
+
 			this.ui.div(
 				{text: i, align: 'center'},
-				{text: chip.type, align: 'left' },
-				{text: chip.name, align: 'left'},
-				{text: chip.target, align: 'left'},
-				{text: chip.attackValue.reduce( (c, i) => c += ' ' + i ),
+				{text: color( chip.type ), align: 'left' },
+				{text: color( chip.name ), align: 'left'},
+				{text: color( chip.target ), align: 'left'},
+				{text: color( chip.attackValue.reduce( (c, i) => c += ' ' + i ) ),
 					align: 'center', padding: [0, 4, 0, 0] },
 			)
 		}
