@@ -2,7 +2,7 @@ const attackInfo = require('./AttackInfo')
 const getEnemyAttack = require('./EnemyAttacks')
 const UI = new ( require('../graphics/BattleUI') )( 80 )
 
-const { Navi, Enemy, EmptySpace, coreTypeClass } = require('../classes')
+const { Navi, Enemy, EmptySpace, coreTypeClass, statEffectClass } = require('../classes')
 
 module.exports = class BattleManager {
 	
@@ -72,9 +72,13 @@ module.exports = class BattleManager {
 					break
 			}
 
+			this.enemyStatusCheck()
+			this.enemyLifeCheck()
+
 			// If battle isn't escaped let the enemies attack
-			if( !this.isEscaped )
+			if( !this.isEscaped ) {
 				this.enemiesTurn()
+			}
 
 			// Log what happened
 			await UI.logActionQueue( this.actionQueue, this.isBattleOver() )
@@ -137,8 +141,6 @@ module.exports = class BattleManager {
 			return
 		
 		enemy.recieveDamage( 10 )
-		
-		this.enemyLifeCheck()
 	}
 
 	// "Cyber Actions" attack
@@ -163,10 +165,28 @@ module.exports = class BattleManager {
 			case 'Heal':
 				this.doUseHealChip(chip)
 				break
+			default:
+				this.addToActionQueue('...But its not implemented yet!')
+		}
+	}
+
+	giveStatusTo( enemy, Core = 'NEUTRAL' ) {
+		let status = '';
+
+		if ( Core === 'NEUTRAL' || Core.type === 'NEUTRAL' )
+			return
+
+		// Get a status effect
+		if ( Core.type === 'FIRE' )
+			status = 'BURNED'
+		else if ( Core.type === 'ELEC' )
+			status = 'STUNNED'
+
+		if ( status !== '' ) {
+			enemy.getsStatus( status )
+			this.addToActionQueue( enemy.name + ' got ' + status +'!' )
 		}
 
-		// update stuff
-		this.enemyLifeCheck()
 	}
 
 	// Attack with a chip of target type 'Single'
@@ -183,6 +203,8 @@ module.exports = class BattleManager {
 				this.navi.name+' dealt '+dmg+' damage to '
 				+enemy.name+' using '+chip.name+'!')
 		}
+
+		this.giveStatusTo( enemy, new (coreTypeClass( chip.type )) )
 	}
 
 	// Attack with a chip of target type 'Triple'
@@ -194,7 +216,7 @@ module.exports = class BattleManager {
 		for (let i = nmeIndex-1; i <= nmeIndex+1; i++) {
 			// If theres an enemy on this index
 			if (this.enemyList[i] && this.enemyList[i] instanceof Enemy) {
-				if ( this.enemyAvoidsAttack( enemy ) ) {
+				if ( this.enemyAvoidsAttack( this.enemyList[i] ) ) {
 					j++
 					continue
 				}
@@ -207,6 +229,8 @@ module.exports = class BattleManager {
 				this.addToActionQueue( this.navi.name +
 					' dealt '+ dmg +' damage to ' + this.enemyList[i].name +
 					' using '+ chip.name + '!')
+
+				this.giveStatusTo( this.enemyList[i], chip.type )
 			}
 
 			j++
@@ -258,12 +282,6 @@ module.exports = class BattleManager {
 
 	// Enemies' turn
 	enemiesTurn() {
-		// Reset every "isNMEDefending" value
-		for ( const enemy in this.enemyList )
-			if ( enemy instanceof Enemy ) {
-				enemy.isDefending = false
-				enemy.isAvoiding = false
-			}
 
 		// Let each enemy do their action
 		for (const enemy of this.enemyList) {
@@ -281,12 +299,15 @@ module.exports = class BattleManager {
 					break
 				case 'Defend':
 					this.addToActionQueue(enemy.name+' will defend next turn')
-					enemy.isDefending = true
-					break;
+					enemy.getsStatus('DEFENDED')
+					break
 				case 'Dodge':
 					this.addToActionQueue(enemy.name+" will attempt to dodge the next turn's attack")
-					enemy.isAvoiding = true
-					break 
+					enemy.getsStatus('AVOIDED')
+					break
+				case 'STUNNED':
+					this.addToActionQueue(enemy.name+' is stunned and cannot do anything!')
+					break
 				default:
 					this.doEnemyAttack( attk, enemy )
 			}
@@ -344,6 +365,27 @@ module.exports = class BattleManager {
 				// And remove them from battle
 				const index = this.enemyList.indexOf(e)
 				this.enemyList.splice(index, 1, new EmptySpace() )
+			}
+		} )
+	}
+
+	enemyStatusCheck() {
+		
+		this.enemyList.forEach( enemy => {
+			if ( enemy instanceof Enemy ) {
+
+				if ( enemy.hasStatus('BURNED') ) {
+					if ( enemy.statusList['BURNED'].isActive ) {
+						enemy.recieveDamage(
+							enemy.statusList['BURNED'].burn(),
+							new( coreTypeClass('FIRE') )  )
+
+						this.addToActionQueue( enemy.name + ' recieved burning injuries' )
+					}
+					else enemy.statusList['BURNED'].isActive = true
+				}
+
+				enemy.updateStatuses()
 			}
 		} )
 	}

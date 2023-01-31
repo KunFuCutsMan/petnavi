@@ -1,11 +1,9 @@
 const coreTypeClass = require('./coreTypes')
+const statEffectClass = require('./statusEffect')
 const getEnemyData = require('../utils/EnemyList')
 const getEnemyAttack = require('../utils/EnemyAttacks')
 
 module.exports = class Enemy {
-
-	DEFEND_BONUS = 0.2
-	AVOID_BONUS = 0.4
 
 	constructor( name ) {
 		// Get the stats from said enemy
@@ -21,8 +19,29 @@ module.exports = class Enemy {
 		this.drops = data.drops
 
 		// Properties from the class
-		this.isDefending = false
-		this.isAvoiding = false
+		this.statusList = {}
+	}
+
+	getsStatus( statStr ) {
+		this.statusList[ statStr ] = new ( statEffectClass(statStr) )
+	}
+
+	hasStatus( statStr ) {
+		const a = this.statusList[statStr] !== undefined
+		const b = this.statusList[ statStr ] instanceof (statEffectClass( statStr ))
+		return a && b
+	}
+
+	updateStatuses() {
+		for (const stat in this.statusList ) {
+			const status = this.statusList[ stat ]
+
+			status.decreaseCounter()
+
+			if ( status.isStatusOver() ) {
+				delete this.statusList[ stat ]
+			}
+		}
 	}
 
 	recieveDamage( damage, Core = 'NEUTRAL' ) {
@@ -36,8 +55,9 @@ module.exports = class Enemy {
 				: dmg
 		}
 
-		if ( this.isDefending )
-			dmg = Math.round( dmg * (1 - this.DEFEND_BONUS ) )
+		if ( this.hasStatus('DEFENDED') ) {
+			dmg = this.statusList['DEFENDED'].getDefendDmg( dmg )
+		}
 
 		// And do the damage given
 		this.HP -= dmg
@@ -48,6 +68,9 @@ module.exports = class Enemy {
 
 	chooseAction() {
 		let action = ''
+
+		if ( this.hasStatus('STUNNED') )
+			return 'STUNNED'
 
 		// Get action from secuence if there's one active
 		if (this.secuence.length > 0)
@@ -68,11 +91,11 @@ module.exports = class Enemy {
 	}
 
 	avoidAttack() {
-		return this.calcRandomBool( this.AVOID_BONUS )
-	}
+		if ( this.hasStatus('AVOIDED') ) {
 
-	calcRandomBool(float) {
-		return Math.random() <= float
+			return this.statusList['AVOIDED'].avoids()
+		}
+		else return false
 	}
 
 	

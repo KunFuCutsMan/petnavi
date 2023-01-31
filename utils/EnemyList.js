@@ -5,6 +5,15 @@ module.exports = function(enemy) {
 }
 
 var json = {
+	Dummy: function() {
+		this.name = 'Dummy'
+		this.core = 'NEUTRAL'
+		this.maxHP = 100
+		this.HP = 100
+		this.CPattacks = [ ['Defend', 'Nothing', 'Nothing'] ]
+		this.secuence = []
+		this.drops = ['Cannon']
+	},
 	Mettaur: function() {
 		this.name = 'Mettaur'
 		this.core = 'NEUTRAL'

@@ -15,7 +15,7 @@ module.exports = async (args) => {
 	// Randomly get 1 - 5 enemy names from the array
 	const nmeArray = ['EMPTY_SPACE', 'Mettaur', 'Swordy', 'Powie', 'Fishy', 'Spikey', 'Piranha']
 	
-	let enemies = [ new Enemy('Mettaur'), new Enemy('Swordy'), new Enemy('Mettaur') ]
+	let enemies = [ new Enemy('Mettaur'), new Enemy('Dummy'), new Enemy('Mettaur') ]
 
 	const Bttl = new BattleManager(navi, enemies, true)
 
