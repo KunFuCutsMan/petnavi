@@ -1,15 +1,20 @@
 const attackInfo = require('./AttackInfo')
 const getEnemyAttack = require('./EnemyAttacks')
-const UI = new ( require('../graphics/BattleUI') )( 80 )
+const { BattleUI, Logger } = require('../graphics')
+const UI = new BattleUI()
+const BattleLog = new Logger()
 
-const { Navi, Enemy, EmptySpace, coreTypeClass, statEffectClass } = require('../classes')
+const { Navi, Enemy, EmptySpace, coreTypeClass, Subject } = require('../classes')
 
-module.exports = class BattleManager {
+module.exports = class BattleManager extends Subject {
 	
 	// How likely are you able to escape
 	escapePercent = 0.2
 
 	constructor( Navi, enemyList, canEscape ) {
+		super()
+		this.attach( BattleLog )
+
 		this.navi = Navi
 		this.enemyList = this.renameToUniqueEnemies( enemyList )
 		this.deadEnemyList = []
@@ -17,8 +22,6 @@ module.exports = class BattleManager {
 		// Setting up for being able to escape
 		this.isPossibleToEscape = canEscape
 		this.isEscaped = false
-
-		this.actionQueue = []
 	}
 
 	// Gets an array of enemy names, returns an array of said enemies
@@ -55,19 +58,15 @@ module.exports = class BattleManager {
 			// Do actions
 			switch ( acts.action ) {
 				case 'Attack':
-					this.addToActionQueue(this.navi.name+' attacked '+acts.target+'!')
 					this.naviAttacks(acts.target)
 					break
 				case 'Cyber Actions':
-					this.addToActionQueue(this.navi.name+' used '+acts.cpattk+'!')
 					this.naviCyberAttacks(acts.target, acts.cpattk)
 					break
 				case 'Defend':
-					this.addToActionQueue(this.navi.name+' defended agaisnt any attacks')
 					this.naviDefends()
 					break
 				case 'Escape':
-					this.addToActionQueue('Attempted to escape...')
 					this.naviEscapes()
 					break
 			}
@@ -81,10 +80,7 @@ module.exports = class BattleManager {
 			}
 
 			// Log what happened
-			await UI.logActionQueue( this.actionQueue, this.isBattleOver() )
-
-			// And reset for next turn
-			this.clearActionQueue()
+			await BattleLog.logActionQueue()
 		}
 	}
 
@@ -112,33 +108,47 @@ module.exports = class BattleManager {
 
 	// Either if the battle was escaped from, navi has no HP, or enemies are EMPTY_SPACE
 	isBattleOver() {
-		if ( this.isEscaped ) // Player escaped
-			return true
-		else if ( this.navi.HP <= 0 ) // Player lost
-			return true
-		else if ( this.enemyList.every( e => e instanceof EmptySpace ) ) // Player won
-			return true
-		else return false
+		const isEscaped = this.isEscaped
+		const isNaviDead = this.navi.HP <= 0
+		const areEnemiesDead = this.enemyList.every( e => e instanceof EmptySpace )
+		return isEscaped || isNaviDead || areEnemiesDead
 	}
 
 	enemyAvoidsAttack( enemy ) {
-		if ( enemy.isAvoiding ) {
-			if ( enemy.avoidAttack() ) {
-				this.addToActionQueue("But "+enemy.name+" avoided the attack!")
-				return true
-			}
-			else return false
+		if ( enemy.avoidAttack() ) {
+			this.notify({
+				state: 'ATTACK_AVOIDED',
+				subject: enemy.name
+			})
+			return true
 		}
-		else return false
+			else return false
 	}
 
 	// "Attack" action
 	naviAttacks(target) {
 		const enemy = this.getEspecifiedEnemy(target)
 
+		this.notify({
+			state: 'ATTACK',
+			subject: this.navi.name,
+			target: enemy.name
+		})
+
 		// check if the target will avoid the attack
-		if ( this.enemyAvoidsAttack( enemy ) )
+		if ( this.enemyAvoidsAttack( enemy ) ) {
+			this.notify({
+				state: 'ATTACK_AVOIDED',
+				subject: enemy.name
+			})
+
 			return
+		}
+
+		this.notify({
+			state: 'ATTACK_SUCCESS',
+			subject: enemy.name
+		})
 		
 		enemy.recieveDamage( 10 )
 	}
@@ -148,9 +158,17 @@ module.exports = class BattleManager {
 		const chip = attackInfo(cpAttack)
 		const enemy = this.getEspecifiedEnemy(target)
 
+		this.notify({ // SUBJECT used CHIP
+			state: 'CYBER_ATTK_USE',
+			subject: this.navi.name,
+			chip: chip.name
+		})
+
 		// check if chip is usable
 		if ( !this.navi.reduceCP( chip.cpCost ) ) {
-			this.addToActionQueue("But there's not enough Cyber Points to do that!")
+			this.notify({ // Not enough CP
+				state: 'CP_LACKING'
+			})
 			return
 		}
 
@@ -166,12 +184,15 @@ module.exports = class BattleManager {
 				this.doUseHealChip(chip)
 				break
 			default:
-				this.addToActionQueue('...But its not implemented yet!')
+				this.notify({
+					state: 'NOT_IMPLEMENTED'
+				})
 		}
 	}
 
 	giveStatusTo( enemy, Core = 'NEUTRAL' ) {
 		let status = '';
+		let state = ''
 
 		if ( Core === 'NEUTRAL' || Core.type === 'NEUTRAL' )
 			return
@@ -184,7 +205,11 @@ module.exports = class BattleManager {
 
 		if ( status !== '' ) {
 			enemy.getsStatus( status )
-			this.addToActionQueue( enemy.name + ' got ' + status +'!' )
+			this.notify({
+				state: 'STATUS_GIVEN',
+				subject: enemy.name,
+				status: status
+			})
 		}
 
 	}
@@ -194,14 +219,25 @@ module.exports = class BattleManager {
 
 		// Deal an array of damage to the enemy
 		for (const damage of chip.attackValue) {
-			if ( this.enemyAvoidsAttack( enemy ) )
+			if ( this.enemyAvoidsAttack( enemy ) ) {
+				this.notify({
+					state: 'ATTACK_AVOIDED',
+					subject: enemy.name
+				})
+
 				continue
+			}
 
 			const dmg = enemy.recieveDamage( damage, new (coreTypeClass( chip.type )) )
 			
-			this.addToActionQueue(
-				this.navi.name+' dealt '+dmg+' damage to '
-				+enemy.name+' using '+chip.name+'!')
+			this.notify({ // SUBJECT used CHIP on TARGET
+				state: 'CYBER_ATTK_SUCCESS',
+				subject: this.navi.name,
+				target: enemy.name,
+				chip: chip.name,
+				damage: dmg
+			})
+
 		}
 
 		this.giveStatusTo( enemy, new (coreTypeClass( chip.type )) )
@@ -217,6 +253,11 @@ module.exports = class BattleManager {
 			// If theres an enemy on this index
 			if (this.enemyList[i] && this.enemyList[i] instanceof Enemy) {
 				if ( this.enemyAvoidsAttack( this.enemyList[i] ) ) {
+					this.notify({
+						state: 'ATTACK_AVOIDED',
+						subject: this.enemyList[i].name
+					})
+					
 					j++
 					continue
 				}
@@ -226,9 +267,13 @@ module.exports = class BattleManager {
 					new (coreTypeClass( chip.type ))
 				)
 
-				this.addToActionQueue( this.navi.name +
-					' dealt '+ dmg +' damage to ' + this.enemyList[i].name +
-					' using '+ chip.name + '!')
+				this.notify({ // SUBJECT used CHIP on TARGET
+					state: 'CYBER_ATTK_SUCCESS',
+					subject: this.navi.name,
+					target: enemy.name,
+					chip: chip.name,
+					damage: dmg
+				})
 
 				this.giveStatusTo( this.enemyList[i], chip.type )
 			}
@@ -242,16 +287,26 @@ module.exports = class BattleManager {
 		// Heal the navi
 		this.navi.healHP( chip.attackValue[0] )
 
-		if ( this.navi.HP >= this.navi.maxHP )
-			this.addToActionQueue(
-				this.navi.name+' recovered all their health')
-		else 
-			this.addToActionQueue(
-				this.navi.name+' recovered '+chip.attackValue[0]+ ' HP')
+		if ( this.navi.HP >= this.navi.maxHP ) {
+			this.notify({
+				state: 'HEAL_HP_FULLY',
+				subject: this.navi.name
+			})
+		}
+		else this.notify({
+			state: 'HEAL_HP',
+			subject: this.navi.name,
+			HP: chip.attackValue[0]
+		})
 	}
 
 	// "Defend" action
 	naviDefends() {
+		this.notify({
+			state: 'NAVI_DEFENDED',
+			subject: this.navi.name
+		})
+
 		// See doEnemyAttack() to see what is done with this flag
 		this.navi.isDefending = true
 
@@ -259,17 +314,28 @@ module.exports = class BattleManager {
 		this.navi.healCP( this.navi.defendCPBonus )
 
 		if ( this.navi.CP >= this.navi.maxCP ) {
-			this.addToActionQueue(this.navi.name+' recovered all of their CP')
+			this.notify({
+				state: 'HEAL_CP_FULLY',
+				subject: this.navi.name
+			})
 		}
-		else {
-			this.addToActionQueue(this.navi.name+' recovered some of their CP')
-		}
+		else this.notify({
+				state: 'HEAL_CP',
+				subject: this.navi.name
+			})
 	}
 
 	// "Escape" action
 	naviEscapes() {
+		this.notify({
+			state: 'NAVI_ESCAPE',
+			subject: this.navi.name
+		})
+
 		if (!this.isPossibleToEscape) {
-			this.addToActionQueue("It's not possible to escape!")
+			this.notify({
+				state: 'NAVI_CANT_ESCAPE'
+			})
 			return
 		}
 
@@ -277,7 +343,9 @@ module.exports = class BattleManager {
 		this.isEscaped = this.calcRandomBool(this.escapePercent)
 		
 		if (!this.isEscaped)
-			this.addToActionQueue("...But couldn't!")
+			this.notify({
+				state: 'NAVI_ESCAPE_FAIL'
+			})
 	}
 
 	// Enemies' turn
@@ -294,22 +362,37 @@ module.exports = class BattleManager {
 			
 			// Switch case in case other common actions are added like fleeing
 			switch (attk) {
-				case 'Nothing':
-					this.addToActionQueue(enemy.name+' did absolutely nothing!')
-					break
-				case 'Defend':
-					this.addToActionQueue(enemy.name+' will defend next turn')
-					enemy.getsStatus('DEFENDED')
-					break
-				case 'Dodge':
-					this.addToActionQueue(enemy.name+" will attempt to dodge the next turn's attack")
-					enemy.getsStatus('AVOIDED')
-					break
-				case 'STUNNED':
-					this.addToActionQueue(enemy.name+' is stunned and cannot do anything!')
-					break
-				default:
-					this.doEnemyAttack( attk, enemy )
+			case 'Nothing':
+				this.notify({
+					state: 'ENEMY_NOTHING',
+					subject: enemy.name
+				})
+				break
+			case 'Defend':
+				this.notify({
+					state: 'ENEMY_DEFENDED',
+					subject: enemy.name
+				})
+
+				enemy.getsStatus('DEFENDED')
+				break
+			case 'Dodge':
+				this.notify({
+					state: 'ENEMY_AVOIDED',
+					subject: enemy.name
+				})
+
+				enemy.getsStatus('AVOIDED')
+				break
+			case 'STUNNED':
+				this.notify({
+					state: 'STUNNED_INJURIES',
+					subject: enemy.name
+				})
+
+				break
+			default:
+				this.doEnemyAttack( attk, enemy )
 			}
 		}
 
@@ -328,66 +411,74 @@ module.exports = class BattleManager {
 			const missed = this.calcRandomBool(attack.missChance)
 
 			if (missed) {
-				this.addToActionQueue(author.name + "'s " +
-					attack.name + ' missed '
-					+ this.navi.name + '!')
+				this.notify({
+					state: 'ENEMY_ATTK_MISS',
+					subject: author.name,
+					target: this.navi.name,
+					chip: attack.name
+				})
+
 				continue
 			}
 
 			const dmg = this.navi.recieveDamage( damage, new (coreTypeClass( attack.type )) )
-			
-			this.addToActionQueue(
-				author.name+' dealt '+dmg+' damage to '
-				+this.navi.name+' using '+attack.name+'!')
+
+			this.notify({
+				state: 'ENEMY_ATTK',
+				subject: author.name,
+				target: this.navi.name,
+				damage: dmg,
+				chip: attack.name
+			})
 		}
-	}
-
-	// Add a string to the turn's queue
-	addToActionQueue(str) {
-		this.actionQueue.push(str)
-	}
-
-	clearActionQueue() {
-		this.actionQueue = []
 	}
 
 	// this.enemyList is modified to its normal state
 	// minus the enemies which have 0 or less hp
 	enemyLifeCheck() {
 
-		this.enemyList.forEach( e => {
-			if ( e instanceof Enemy && e.HP <= 0) {
-				this.addToActionQueue(e.name +' was deleted!')
+		for (const e of this.enemyList) {
+			if ( !(e instanceof Enemy) || e.HP > 0 )
+				continue
 
-				// Save the enemy for later use
-				this.deadEnemyList.push( e )
+			this.notify({
+				state: 'ENEMY_DELETED',
+				subject: e.name
+			})
 
-				// And remove them from battle
-				const index = this.enemyList.indexOf(e)
-				this.enemyList.splice(index, 1, new EmptySpace() )
-			}
-		} )
+			// Save the enemy for later use
+			this.deadEnemyList.push( e )
+
+			// And remove them from battle
+			const index = this.enemyList.indexOf(e)
+			this.enemyList.splice(index, 1, new EmptySpace() )
+		}
 	}
 
 	enemyStatusCheck() {
-		
-		this.enemyList.forEach( enemy => {
-			if ( enemy instanceof Enemy ) {
 
-				if ( enemy.hasStatus('BURNED') ) {
-					if ( enemy.statusList['BURNED'].isActive ) {
-						enemy.recieveDamage(
-							enemy.statusList['BURNED'].burn(),
-							new( coreTypeClass('FIRE') )  )
+		for (const enemy of this.enemyList ) {
+			if ( !( enemy instanceof Enemy ) )
+				continue
 
-						this.addToActionQueue( enemy.name + ' recieved burning injuries' )
-					}
-					else enemy.statusList['BURNED'].isActive = true
+			if ( enemy.hasStatus('BURNED') ) {
+				// Check if has an active status
+
+				if ( enemy.statusList['BURNED'].isActive ) {
+					enemy.recieveDamage(
+						enemy.statusList['BURNED'].burn(),
+						new( coreTypeClass('FIRE') )  )
+
+					this.notify({
+						state: 'BURN_INJURIES',
+						subject: enemy.name
+					})
 				}
-
-				enemy.updateStatuses()
+				else enemy.statusList['BURNED'].isActive = true
 			}
-		} )
+
+			enemy.updateStatuses()
+		}
 	}
 
 	// Based on a float value between 0 and 1 return a random boolean

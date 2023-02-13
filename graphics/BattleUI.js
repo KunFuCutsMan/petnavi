@@ -1,5 +1,4 @@
 const Enquirer = require('enquirer')
-const c = require('ansi-colors')
 
 const ViewerUI = require('./ViewerUI')
 const attackInfo = require('../utils/attackInfo')
@@ -76,17 +75,6 @@ module.exports = class BattleUI extends ViewerUI {
 				}
 			}
 		]);
-	}
-
-	async logActionQueue(aq, isOver) {
-		for (const str of aq) {
-			console.log( c.dim.green('›') + ' ' + str)
-			await sleep(750)
-		}
-
-		// Let the player read what happened
-		if ( !isOver )
-			await sleep()
 	}
 
 	countInstancesInArray(array) {
