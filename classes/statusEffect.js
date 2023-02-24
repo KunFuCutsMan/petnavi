@@ -32,6 +32,10 @@ class DefendedStatus extends Status {
 	getDefendDmg( dmg ) {
 		return Math.round( dmg * (1 - this.DEFEND_BONUS ) )
 	}
+
+	set defense ( def ) {
+		this.DEFEND_BONUS = def
+	}
 }
 
 class AvoidedStatus extends Status {

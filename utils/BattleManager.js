@@ -79,6 +79,8 @@ module.exports = class BattleManager extends Subject {
 				this.enemiesTurn()
 			}
 
+			this.navi.updateStatuses()
+
 			// Log what happened
 			await BattleLog.logActionQueue()
 		}
@@ -191,8 +193,7 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	giveStatusTo( enemy, Core = 'NEUTRAL' ) {
-		let status = '';
-		let state = ''
+		let status = ''
 
 		if ( Core === 'NEUTRAL' || Core.type === 'NEUTRAL' )
 			return
@@ -308,7 +309,7 @@ module.exports = class BattleManager extends Subject {
 		})
 
 		// See doEnemyAttack() to see what is done with this flag
-		this.navi.isDefending = true
+		this.navi.getsStatus('DEFENDED')
 
 		// Recover some CP
 		this.navi.healCP( this.navi.defendCPBonus )

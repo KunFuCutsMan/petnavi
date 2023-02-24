@@ -1,5 +1,6 @@
 const getAttackChip = require('../utils/AttackInfo')
 const coreTypeClass = require('./coreTypes')
+const statEffectClass = require('./statusEffect')
 
 module.exports = class Navi {
 
@@ -23,7 +24,32 @@ module.exports = class Navi {
 		this.chipLibrary = [ ...naviJson.chipLibrary ]
 
 		// Properties from the class
-		this.isDefending = false
+		this.statusList = {}
+	}
+
+	getsStatus( statStr ) {
+		this.statusList[ statStr ] = new ( statEffectClass(statStr) )
+
+		if ( statStr === 'DEFENDED' )
+			this.statusList['DEFENDED'].defense = this.DEFEND_BONUS
+	}
+
+	hasStatus( statStr ) {
+		const a = this.statusList[statStr] !== undefined
+		const b = this.statusList[ statStr ] instanceof (statEffectClass( statStr ))
+		return a && b
+	}
+
+	updateStatuses() {
+		for (const stat in this.statusList ) {
+			const status = this.statusList[ stat ]
+
+			status.decreaseCounter()
+
+			if ( status.isStatusOver() ) {
+				delete this.statusList[ stat ]
+			}
+		}
 	}
 
 	isCPattacksFull() {
@@ -60,8 +86,8 @@ module.exports = class Navi {
 				: dmg
 		}
 
-		if ( this.isDefending )
-			dmg = Math.round( dmg * (1 - this.DEFEND_BONUS ) )
+		if ( this.hasStatus( 'DEFENDED' ) )
+			dmg = this.statusList['DEFENDED'].getDefendDmg( dmg )
 
 		// And do the damage given
 		this.HP -= dmg
