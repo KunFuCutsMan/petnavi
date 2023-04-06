@@ -4,6 +4,7 @@ const Enemy = require('./enemy')
 const Navi = require('./navi')
 const statEffectClass = require('./statusEffect')
 const { Subject, Observer } = require('./observer')
+const { Chip } = require('./chip')
 
 module.exports = {
 	coreTypeClass,
@@ -11,5 +12,6 @@ module.exports = {
 	Enemy,
 	Navi,
 	statEffectClass,
-	Subject, Observer
+	Subject, Observer,
+	Chip,
 }

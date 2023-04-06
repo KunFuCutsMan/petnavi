@@ -24,8 +24,9 @@ const strengthChain = {
 // Default core class that will never be created, main class that won't be used
 // other than here, since its children construct for their own types
 class Core {
-	constructor( type ) {
+	constructor( type, status ) {
 		this.type = type
+		this.status = status
 	}
 
 	isWeakTo( OtherCore ) {
@@ -48,31 +49,31 @@ class Core {
 }
 
 // Neutral Core
-class NeutralCore extends Core { constructor() { super('NEUTRAL') } }
+class NeutralCore extends Core { constructor() { super( 'NEUTRAL', '' ) } }
 
 // Fire Core
-class FireCore extends Core {constructor() {super('FIRE')} }
+class FireCore extends Core {constructor() {super( 'FIRE', 'BURNED' )} }
 
 // Wood Core
-class WoodCore extends Core { constructor() { super('WOOD') } }
+class WoodCore extends Core { constructor() { super( 'WOOD', '' ) } }
 
 // Elec Core
-class ElecCore extends Core { constructor() { super('ELEC') } }
+class ElecCore extends Core { constructor() { super('ELEC', 'STUNNED' ) } }
 
 // Water Core
-class WaterCore extends Core { constructor() { super('WATER') } }
+class WaterCore extends Core { constructor() { super( 'WATER', '' ) } }
 
 // Sword Core
-class SwordCore extends Core { constructor() { super('SWORD') } }
+class SwordCore extends Core { constructor() { super( 'SWORD', '' ) } }
 
 // Wind Core
-class WindCore extends Core { constructor() { super('WIND') } }
+class WindCore extends Core { constructor() { super( 'WIND', '' ) } }
 
 // Target Core
-class TargetCore extends Core { constructor() { super('TARGET') } }
+class TargetCore extends Core { constructor() { super( 'TARGET', '' ) } }
 
 // Break Core
-class BreakCore extends Core { constructor() { super('BREAK') } }
+class BreakCore extends Core { constructor() { super( 'BREAK', '' ) } }
 
 // According to the core type given, return the class described
 module.exports = function coreTypeClass( type ) {

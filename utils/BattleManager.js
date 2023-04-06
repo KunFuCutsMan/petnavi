@@ -4,7 +4,7 @@ const { BattleUI, Logger } = require('../graphics')
 const UI = new BattleUI()
 const BattleLog = new Logger()
 
-const { Navi, Enemy, EmptySpace, coreTypeClass, Subject } = require('../classes')
+const { Enemy, EmptySpace, coreTypeClass, Subject, Chip } = require('../classes')
 
 module.exports = class BattleManager extends Subject {
 	
@@ -157,7 +157,7 @@ module.exports = class BattleManager extends Subject {
 
 	// "Cyber Actions" attack
 	naviCyberAttacks(target, cpAttack) {
-		const chip = attackInfo(cpAttack)
+		const chip = new Chip( cpAttack )
 		const enemy = this.getEspecifiedEnemy(target)
 
 		this.notify({ // SUBJECT used CHIP
@@ -175,130 +175,11 @@ module.exports = class BattleManager extends Subject {
 		}
 
 		// check chip's target type and do damage to corresponding targets
-		switch (chip.target) {
-			case 'Single':
-				this.doSingleCP(chip, enemy)
-				break
-			case 'Triple':
-				this.doTripleCP(chip, enemy)
-				break
-			case 'Heal':
-				this.doUseHealChip(chip)
-				break
-			default:
-				this.notify({
-					state: 'NOT_IMPLEMENTED'
-				})
-		}
-	}
-
-	giveStatusTo( enemy, Core = 'NEUTRAL' ) {
-		let status = ''
-
-		if ( Core === 'NEUTRAL' || Core.type === 'NEUTRAL' )
-			return
-
-		// Get a status effect
-		if ( Core.type === 'FIRE' )
-			status = 'BURNED'
-		else if ( Core.type === 'ELEC' )
-			status = 'STUNNED'
-
-		if ( status !== '' ) {
-			enemy.getsStatus( status )
-			this.notify({
-				state: 'STATUS_GIVEN',
-				subject: enemy.name,
-				status: status
-			})
-		}
-
-	}
-
-	// Attack with a chip of target type 'Single'
-	doSingleCP(chip, enemy) {
-
-		// Deal an array of damage to the enemy
-		for (const damage of chip.attackValue) {
-			if ( this.enemyAvoidsAttack( enemy ) ) {
-				this.notify({
-					state: 'ATTACK_AVOIDED',
-					subject: enemy.name
-				})
-
-				continue
-			}
-
-			const dmg = enemy.recieveDamage( damage, new (coreTypeClass( chip.type )) )
-			
-			this.notify({ // SUBJECT used CHIP on TARGET
-				state: 'CYBER_ATTK_SUCCESS',
-				subject: this.navi.name,
-				target: enemy.name,
-				chip: chip.name,
-				damage: dmg
-			})
-
-		}
-
-		this.giveStatusTo( enemy, new (coreTypeClass( chip.type )) )
-	}
-
-	// Attack with a chip of target type 'Triple'
-	doTripleCP(chip, enemy) {
-		const nmeIndex = this.enemyList.indexOf(enemy)
-		let j = 0 // Counter for chip.attackValue
-
-		// Go from the enemy before to the next one
-		for (let i = nmeIndex-1; i <= nmeIndex+1; i++) {
-			// If theres an enemy on this index
-			if (this.enemyList[i] && this.enemyList[i] instanceof Enemy) {
-				if ( this.enemyAvoidsAttack( this.enemyList[i] ) ) {
-					this.notify({
-						state: 'ATTACK_AVOIDED',
-						subject: this.enemyList[i].name
-					})
-					
-					j++
-					continue
-				}
-
-				const dmg = this.enemyList[i].recieveDamage(
-					chip.attackValue[j],
-					new (coreTypeClass( chip.type ))
-				)
-
-				this.notify({ // SUBJECT used CHIP on TARGET
-					state: 'CYBER_ATTK_SUCCESS',
-					subject: this.navi.name,
-					target: enemy.name,
-					chip: chip.name,
-					damage: dmg
-				})
-
-				this.giveStatusTo( this.enemyList[i], chip.type )
-			}
-
-			j++
-		}
-	}
-
-	// Use a 'Heal' target type chip
-	doUseHealChip(chip) {
-		// Heal the navi
-		this.navi.healHP( chip.attackValue[0] )
-
-		if ( this.navi.HP >= this.navi.maxHP ) {
-			this.notify({
-				state: 'HEAL_HP_FULLY',
-				subject: this.navi.name
-			})
-		}
-		else this.notify({
-			state: 'HEAL_HP',
-			subject: this.navi.name,
-			HP: chip.attackValue[0]
-		})
+		if ( chip.target != 'Heal' )
+			chip.attack( this.enemyList, this.enemyList.indexOf( enemy ) )
+		else if ( chip.target == 'Heal' || chip.target == 'Self' )
+			chip.attack( [ this.navi ], 0 )
+		else this.notify({ state: 'NOT_IMPLEMENTED'})
 	}
 
 	// "Defend" action
