@@ -66,7 +66,7 @@ module.exports = async (args) => {
 				navi.zenny += zennies
 			}
 
-			await NFM.updateNaviStatsInStorage(navi.name, naviData)
+			await NFM.updateNaviStatsInStorage(navi.name, navi.toData() )
 
 			break
 		case 'LOST':
