@@ -1,7 +1,6 @@
 const coreTypeClass = require('./coreTypes')
 const statEffectClass = require('./statusEffect')
 const getEnemyData = require('../utils/EnemyList')
-const getEnemyAttack = require('../utils/EnemyAttacks')
 
 module.exports = class Enemy {
 
@@ -44,12 +43,12 @@ module.exports = class Enemy {
 		}
 	}
 
-	recieveDamage( damage, Core = 'NEUTRAL' ) {
+	recieveDamage( damage, Core ) {
 		let dmg = damage
 
 		// If a core was given, and its not a NEUTRAL type,
 		// calculate its the damage bonus if it applies
-		if ( Core !== 'NEUTRAL' && Core.type !== 'NEUTRAL' ) {
+		if ( Core.type !== 'NEUTRAL' ) {
 			dmg = this.Core.isWeakTo( Core )
 				? dmg * 2
 				: dmg

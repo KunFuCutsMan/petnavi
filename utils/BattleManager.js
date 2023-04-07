@@ -118,17 +118,6 @@ module.exports = class BattleManager extends Subject {
 		return isEscaped || isNaviDead || areEnemiesDead
 	}
 
-	enemyAvoidsAttack( enemy ) {
-		if ( enemy.avoidAttack() ) {
-			this.notify({
-				state: 'ATTACK_AVOIDED',
-				subject: enemy.name
-			})
-			return true
-		}
-			else return false
-	}
-
 	// "Attack" action
 	naviAttacks(target) {
 		const enemy = this.getEspecifiedEnemy(target)
@@ -139,7 +128,7 @@ module.exports = class BattleManager extends Subject {
 		})
 
 		// check if the target will avoid the attack
-		if ( this.enemyAvoidsAttack( enemy ) ) {
+		if ( enemy.avoidAttack() ) {
 			this.notify({
 				state: 'ATTACK_AVOIDED',
 				subject: enemy.name
@@ -153,7 +142,7 @@ module.exports = class BattleManager extends Subject {
 			subject: enemy.name
 		})
 		
-		enemy.recieveDamage( 10 )
+		enemy.recieveDamage( 10, new (coreTypeClass('NEUTRAL')) )
 	}
 
 	// "Cyber Actions" attack
@@ -190,9 +179,7 @@ module.exports = class BattleManager extends Subject {
 
 	// "Defend" action
 	naviDefends() {
-		this.notify({
-			state: 'NAVI_DEFENDED',
-		})
+		this.notify({ state: 'NAVI_DEFENDED' })
 
 		// See doEnemyAttack() to see what is done with this flag
 		this.navi.getsStatus('DEFENDED')
@@ -200,26 +187,17 @@ module.exports = class BattleManager extends Subject {
 		// Recover some CP
 		this.navi.healCP( this.navi.defendCPBonus )
 
-		if ( this.navi.CP >= this.navi.maxCP ) {
-			this.notify({
-				state: 'HEAL_CP_FULLY',
-			})
-		}
-		else this.notify({
-				state: 'HEAL_CP',
-			})
+		if ( this.navi.CP >= this.navi.maxCP )
+			this.notify({ state: 'HEAL_CP_FULLY' })
+		else this.notify({ state: 'HEAL_CP' })
 	}
 
 	// "Escape" action
 	naviEscapes() {
-		this.notify({
-			state: 'NAVI_ESCAPE',
-		})
+		this.notify({ state: 'NAVI_ESCAPE' })
 
 		if (!this.isPossibleToEscape) {
-			this.notify({
-				state: 'NAVI_CANT_ESCAPE'
-			})
+			this.notify({ state: 'NAVI_CANT_ESCAPE' })
 			return
 		}
 
@@ -227,9 +205,7 @@ module.exports = class BattleManager extends Subject {
 		this.isEscaped = this.calcRandomBool(this.escapePercent)
 		
 		if (!this.isEscaped)
-			this.notify({
-				state: 'NAVI_ESCAPE_FAIL'
-			})
+			this.notify({ state: 'NAVI_ESCAPE_FAIL' })
 	}
 
 	// Enemies' turn
@@ -279,9 +255,6 @@ module.exports = class BattleManager extends Subject {
 				this.doEnemyAttack( attk, enemy )
 			}
 		}
-
-		// Navi is no longer defending (if they were)
-		this.navi.isDefending = false
 	}
 
 	// Let that enemy attack
