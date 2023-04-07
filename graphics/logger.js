@@ -8,7 +8,7 @@ const stateArray = [
 	'HEAL_HP', 'HEAL_HP_FULLY', 'HEAL_CP', 'HEAL_CP_FULLY', 'CP_LACKING',
 	'CYBER_ATTK_USE', 'CYBER_ATTK_FAIL', 'CYBER_ATTK_SUCCESS',
 	'NAVI_ESCAPE', 'NAVI_ESCAPE_FAIL', 'NAVI_CANT_ESCAPE',
-	'NAVI_DEFENDED', 'NAVI_AVOIDED',
+	'NAVI_DEFENDED', 'NAVI_AVOIDED', 'NAVI_AUTOHURT',
 	'STATUS_GIVEN', 'BURN_INJURIES', 'STUNNED_INJURIES',
 	'ENEMY_NOTHING', 'ENEMY_DEFENDED', 'ENEMY_AVOIDED',
 	'ENEMY_ATTK', 'ENEMY_ATTK_MISS', 'ENEMY_DELETED',
@@ -18,9 +18,10 @@ const stateArray = [
 
 module.exports = class Logger extends Observer {
 
-	constructor() {
+	constructor( naviName ) {
 		super()
 		this.queue = []
+		this.naviName = naviName
 	}
 
 	/**
@@ -46,7 +47,7 @@ module.exports = class Logger extends Observer {
 
 		switch ( State.state ) {
 		case 'ATTACK':
-			str = `${State.subject}'s buster aimed at ${State.target}...`
+			str = `${this.naviName}'s buster aimed at ${State.target}...`
 			break
 		case 'ATTACK_SUCCESS':
 			str = `...and damaged ${State.subject}!`
@@ -55,28 +56,28 @@ module.exports = class Logger extends Observer {
 			str = `...but ${State.subject} avoided the attack!`
 			break
 		case 'HEAL_HP':
-			str = `${State.subject} recovered ${State.HP} HP!`
+			str = `${this.naviName} recovered ${State.HP} HP!`
 			break
 		case 'HEAL_HP_FULLY':
-			str = `${State.subject} recovered all of their HP!`
+			str = `${this.naviName} recovered all of their HP!`
 			break
 		case 'HEAL_CP':
-			str = `${State.subject} recovered some of their CP!`
+			str = `${this.naviName} recovered some of their CP!`
 			break
 		case 'HEAL_CP_FULLY':
-			str = `${State.subject} recovered all of their CP!`
+			str = `${this.naviName} recovered all of their CP!`
 			break
 		case 'CP_LACKING':
 			str = `...but there are not enough CP!`
 			break
 		case 'CYBER_ATTK_USE':
-			str = `${State.subject} used ${State.chip}!`
+			str = `${this.naviName} used ${State.chip}!`
 			break
 		case 'CYBER_ATTK_SUCCESS':
-			str = `${State.subject} dealt ${State.damage} damage to ${State.target} using ${State.chip}!`
+			str = `${this.naviName} dealt ${State.damage} damage to ${State.target} using ${State.chip}!`
 			break
 		case 'NAVI_ESCAPE':
-			str = `${State.subject} attempted to escape the battle...`
+			str = `${this.naviName} attempted to escape the battle...`
 			break
 		case 'NAVI_ESCAPE_FAIL':
 			str = `...but failed to do so!`
@@ -85,11 +86,13 @@ module.exports = class Logger extends Observer {
 			str = `...but its not possible to escape!`
 			break
 		case 'NAVI_DEFENDED':
-			str = `${State.subject} defended agaisnt any attacks`
+			str = `${this.naviName} defended agaisnt any attacks`
 			break
 		case 'NAVI_AVOIDED':
-			str = `${State.subject} attempted to avoid any attacks`
+			str = `${this.naviName} attempted to avoid any attacks`
 			break
+		case 'NAVI_AUTOHURT':
+			str = `${this.naviName} got hurt using ${State.chip}!`
 		case 'STATUS_GIVEN':
 			str = `${State.subject} got ${State.status}!`
 			break
@@ -109,10 +112,10 @@ module.exports = class Logger extends Observer {
 			str = `${State.subject} will avoid any attacks the next turn`
 			break
 		case 'ENEMY_ATTK':
-			str = `${State.subject}'s ${State.chip} dealt ${State.damage} damage to ${State.target}!`
+			str = `${State.subject}'s ${State.chip} dealt ${State.damage} damage to ${this.naviName}!`
 			break
 		case 'ENEMY_ATTK_MISS':
-			str = `${State.subject}'s ${State.chip} missed ${State.target}!`
+			str = `${State.subject}'s ${State.chip} missed ${this.naviName}!`
 			break
 		case 'ENEMY_DELETED':
 			str = `${State.subject} was deleted!`

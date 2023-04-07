@@ -2,7 +2,6 @@ const attackInfo = require('./AttackInfo')
 const getEnemyAttack = require('./EnemyAttacks')
 const { BattleUI, Logger } = require('../graphics')
 const UI = new BattleUI()
-const BattleLog = new Logger()
 
 const { Enemy, EmptySpace, coreTypeClass, Subject, Chip } = require('../classes')
 
@@ -13,15 +12,18 @@ module.exports = class BattleManager extends Subject {
 
 	constructor( Navi, enemyList, canEscape ) {
 		super()
-		this.attach( BattleLog )
-
+		
 		this.navi = Navi
 		this.enemyList = this.renameToUniqueEnemies( enemyList )
 		this.deadEnemyList = []
-
+		
 		// Setting up for being able to escape
 		this.isPossibleToEscape = canEscape
 		this.isEscaped = false
+
+		// And attach the logger
+		this.logger = new Logger(this.navi.name)
+		this.attach( this.logger )
 	}
 
 	// Gets an array of enemy names, returns an array of said enemies
@@ -82,7 +84,7 @@ module.exports = class BattleManager extends Subject {
 			this.navi.updateStatuses()
 
 			// Log what happened
-			await BattleLog.logActionQueue()
+			await this.logger.logActionQueue()
 		}
 	}
 
@@ -133,7 +135,6 @@ module.exports = class BattleManager extends Subject {
 
 		this.notify({
 			state: 'ATTACK',
-			subject: this.navi.name,
 			target: enemy.name
 		})
 
@@ -162,7 +163,6 @@ module.exports = class BattleManager extends Subject {
 
 		this.notify({ // SUBJECT used CHIP
 			state: 'CYBER_ATTK_USE',
-			subject: this.navi.name,
 			chip: chip.name
 		})
 
@@ -175,18 +175,23 @@ module.exports = class BattleManager extends Subject {
 		}
 
 		// check chip's target type and do damage to corresponding targets
-		if ( chip.target != 'Heal' )
+		chip.attach( this.logger )
+		if ( chip.target != 'Heal' ) {
 			chip.attack( this.enemyList, this.enemyList.indexOf( enemy ) )
-		else if ( chip.target == 'Heal' || chip.target == 'Self' )
+		}
+		else if ( chip.target == 'Heal' || chip.target == 'Self' ) {
 			chip.attack( [ this.navi ], 0 )
-		else this.notify({ state: 'NOT_IMPLEMENTED'})
+		}
+		else {
+			this.notify({ state: 'NOT_IMPLEMENTED'})
+		}
+		chip.detach( this.logger )
 	}
 
 	// "Defend" action
 	naviDefends() {
 		this.notify({
 			state: 'NAVI_DEFENDED',
-			subject: this.navi.name
 		})
 
 		// See doEnemyAttack() to see what is done with this flag
@@ -198,12 +203,10 @@ module.exports = class BattleManager extends Subject {
 		if ( this.navi.CP >= this.navi.maxCP ) {
 			this.notify({
 				state: 'HEAL_CP_FULLY',
-				subject: this.navi.name
 			})
 		}
 		else this.notify({
 				state: 'HEAL_CP',
-				subject: this.navi.name
 			})
 	}
 
@@ -211,7 +214,6 @@ module.exports = class BattleManager extends Subject {
 	naviEscapes() {
 		this.notify({
 			state: 'NAVI_ESCAPE',
-			subject: this.navi.name
 		})
 
 		if (!this.isPossibleToEscape) {
@@ -296,7 +298,6 @@ module.exports = class BattleManager extends Subject {
 				this.notify({
 					state: 'ENEMY_ATTK_MISS',
 					subject: author.name,
-					target: this.navi.name,
 					chip: attack.name
 				})
 
@@ -308,7 +309,6 @@ module.exports = class BattleManager extends Subject {
 			this.notify({
 				state: 'ENEMY_ATTK',
 				subject: author.name,
-				target: this.navi.name,
 				damage: dmg,
 				chip: attack.name
 			})

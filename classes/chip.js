@@ -1,8 +1,47 @@
 const AttackInfo = require('../utils/AttackInfo')
 const coreTypeClass = require('./coreTypes')
 const Enemy = require('./enemy')
+const { Subject } = require('./observer')
 
-class SingleAttack {
+class Attack extends Subject {
+
+	// A "tad" of damage is one damage defined in chip.attackValue
+	// This function checks if the enemy avoids the attack, makes sure
+	// the enemy is hurt, and gives it prover statuses, and logs the results
+	dealTadOfDamageTo( enemy, chip, dmg ) {
+		// Did it avoid the attack?
+		if ( enemy.avoidAttack() ) {
+			this.notify({
+				state: 'ATTACK_AVOIDED',
+				subject: enemy.name,
+			})
+			return
+		}
+		
+		// Then it's hurt
+		const damage = enemy.recieveDamage( dmg, chip.type )
+		this.notify({
+			state: 'CYBER_ATTK_SUCCESS',
+			subject: 'Someone',
+			damage: damage,
+			target: enemy.name,
+			chip: chip.name,
+		})
+
+		// And give it a status if needed
+		if ( chip.type.status != '' && !enemy.hasStatus( chip.type.status ) ) {
+			this.notify({
+				state: 'STATUS_GIVEN',
+				subject: enemy.name,
+				status: chip.type.status,
+			})
+			enemy.getsStatus( chip.type.status )
+		}
+	}
+}
+
+class SingleAttack extends Attack {
+	
 	attack( chip, targetArray, indexOfTarget ) {
 		// Find the targetted enemy
 		const enemy = targetArray[indexOfTarget]
@@ -10,26 +49,12 @@ class SingleAttack {
 		// And deal an array of damage to it (if it gets hits)
 		for (const dmg of chip.attackValue) {
 
-			// Did it avoid the attack?
-			if ( enemy.avoidAttack() ) {
-				console.log("Enemy avoided attack")
-				continue
-			}
-			
-			// Then it's hurt
-			console.log("Enemy attacked")
-			enemy.recieveDamage( dmg, chip.type )
-
-			// And give it a status if needed
-			if ( chip.type.status != null ) {
-				console.log("Got status:" + chip.type.status)
-				enemy.getsStatus( chip.type.status )
-			}
+			this.dealTadOfDamageTo( enemy, chip, dmg )
 		}
 	}
 }
 
-class TripleAttack {
+class TripleAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {
 
 		// Index used to align the target values,
@@ -45,45 +70,28 @@ class TripleAttack {
 			// Find the targetted enemy
 			const enemy = targetArray[i]
 			
-			// Is it an enemy?
-			if ( enemy == null || !(enemy instanceof Enemy) ) {
-				console.log("Not an enemy lol")
-				continue
-			}
-
-			// Did it avoid the attack?
-			if ( enemy.avoidAttack() ) {
-				console.log("Enemy avoided attack")
-				continue
-			}
-
-			// Then it's hurt
-			console.log("Enemy attacked")
-			enemy.recieveDamage( chip.attackValue[ valOfDamage ], chip.type )
-
-			// And give it a status if needed
-			if ( chip.type.status != null ) {
-				console.log("Got status:" + chip.type.status)
-				enemy.getsStatus( chip.type.status )
-			}
+			this.dealTadOfDamageTo( enemy, chip, chip.attackValue[valOfDamage] )
 		}
 	}
 }
 
-class SelfAttack {
+class SelfAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {
 		// Get the navi
 		const navi = targetArray[ indexOfTarget ]
 
 		for (const dmg of chip.attackValue) {
 			// And hurt it >:}
-			console.log("Navi got hurt")
+			this.notify({
+				state: 'NAVI_AUTOHURT',
+				chip: chip.name,
+			})
 			navi.recieveDamage( dmg, chip.type )
 		}
 	}
 }
 
-class HealAttack {
+class HealAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {
 		// Get the navi
 		const navi = targetArray[ indexOfTarget ]
@@ -93,30 +101,33 @@ class HealAttack {
 
 		// And notify the results
 		if ( navi.HP >= navi.maxHP ) {
-			console.log("Navi fully healed")
-		} else {
-			console.log("Navi got healed")
-		}
+			this.notify({
+				state: 'HEAL_HP_FULLY'
+			})
+		} else this.notify({
+			state: 'HEAL_HP',
+			HP: chip.attackValue[0]
+		})
 	}
 }
 
-class LowAttack {
+class LowAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {}
 }
 
-class HighAttack {
+class HighAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {}
 }
 
-class LeftAttack {
+class LeftAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {}
 }
 
-class RightAttack {
+class RightAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {}
 }
 
-class EveryoneAttack {
+class EveryoneAttack extends Attack {
 	attack( chip, targetArray, indexOfTarget ) {
 
 		for (const enemy of targetArray) {
@@ -124,30 +135,12 @@ class EveryoneAttack {
 			const enemy = targetArray[indexOfTarget]
 
 			// Is it an enemy?
-			if ( enemy == null || !(enemy instanceof Enemy) ) {
-				console.log("Not an enemy lol")
+			if ( enemy == null || !(enemy instanceof Enemy) )
 				continue
-			}
 
-			// And deal an array of damage to it (if it gets hits)
-			for (const dmg of chip.attackValue) {
-
-				// Did it avoid the attack?
-				if ( enemy.avoidAttack() ) {
-					console.log("Enemy avoided attack")
-					continue
-				}
-
-				// Then it's hurt
-				console.log("Enemy attacked")
-				enemy.recieveDamage( dmg, chip.type )
-
-				// And give it a status if needed
-				if ( chip.type.status != null ) {
-					console.log("Got status:" + chip.type.status)
-					enemy.getsStatus( chip.type.status )
-				}
-			}
+			// And deal a tad of damage to it
+			for (const dmg of chip.attackValue)
+				this.dealTadOfDamageTo( enemy, chip, dmg )
 		}
 	}
 }
@@ -207,6 +200,14 @@ class Chip {
 
 	attack( targetArray, indexOfTarget ) {
 		this.attk.attack( this, targetArray, indexOfTarget )
+	}
+
+	attach( observer ) {
+		this.attk.attach( observer )
+	}
+
+	detach( observer ) {
+		this.attk.detach( observer )
 	}
 }
 
