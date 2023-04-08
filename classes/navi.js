@@ -1,4 +1,3 @@
-const getAttackChip = require('../utils/AttackInfo')
 const coreTypeClass = require('./coreTypes')
 const statEffectClass = require('./statusEffect')
 
@@ -118,24 +117,6 @@ module.exports = class Navi {
 			return false
 		}
 		else return true
-	}
-
-	attack( Enemy, attackName ) {
-		const attack = getAttackChip( attackName )
-
-		// Do the array of damage
-		for ( const damage of attack.attackValue ) {
-			// And as long as it doesn't miss
-			const missed = this.calcRandomBool( attack.missChance )
-
-			if ( missed ) continue
-
-			Enemy.recieveDamage( damage, new coreTypeClass( attack.type ) )
-		}
-	}
-
-	calcRandomBool(float) {
-		return Math.random() <= float
 	}
 
 	toData() {
