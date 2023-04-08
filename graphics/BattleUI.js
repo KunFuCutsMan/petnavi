@@ -1,8 +1,9 @@
 const Enquirer = require('enquirer')
 
 const ViewerUI = require('./ViewerUI')
+const attackInfo = require('../utils/attackInfo')
 const colorFromType = require('./colorFromType')
-const { Enemy, EmptySpace, Chip } = require('../classes')
+const { Enemy, EmptySpace } = require('../classes')
 const sleep = (ms = 2000) => new Promise( (r) => setTimeout(r, ms) )
 
 /**
@@ -63,7 +64,7 @@ module.exports = class BattleUI extends ViewerUI {
 				choices: normalizedEnemyChoices,
 				
 				skip: function() {
-					const chip = new Chip( this.state.answers['cpattk'] )
+					const chip = attackInfo( this.state.answers['cpattk'] )
 
 					// Boolean flags for not making spaguetti
 					const a = this.state.answers['action'] === 'Attack'
