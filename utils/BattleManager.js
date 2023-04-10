@@ -1,5 +1,6 @@
 const { BattleUI, Logger } = require('../graphics')
-const { Enemy, EmptySpace, coreTypeClass, Subject, Chip, EnemyAttack } = require('../classes')
+const { Enemy, EmptySpace, coreTypeClass, Subject, Chip } = require('../classes')
+const getEnemyAttack = require('./EnemyAttacks')
 const UI = new BattleUI()
 
 module.exports = class BattleManager extends Subject {
@@ -101,13 +102,13 @@ module.exports = class BattleManager extends Subject {
 				// Drop a chip
 				let chipsAvailable = [];
 				
-				for (const enemy of Bttl.deadEnemyList)
+				for (const enemy of this.deadEnemyList)
 					chipsAvailable = chipsAvailable.concat( enemy.drops )
 
 				const j = Math.floor( Math.random() * chipsAvailable.length )
 				const chipChosen = chipsAvailable[ j ]
 
-				navi.chipLibrary.push( chipChosen )
+				this.navi.chipLibrary.push( chipChosen )
 				
 				result.res = "CHIP"
 				result.str = "You got: " + chipChosen
@@ -115,12 +116,12 @@ module.exports = class BattleManager extends Subject {
 			else {
 				// Gain some zenny
 				let zennies = 0
-				for (const enemy of Bttl.deadEnemyList)
+				for (const enemy of this.deadEnemyList)
 					zennies += enemy.maxHP
 
 				zennies *= 5
 
-				navi.zenny += zennies
+				this.navi.zenny += zennies
 
 				result.res = "ZENNIES"
 				result.str = "You got: " + zennies + " zenny"
@@ -314,13 +315,15 @@ module.exports = class BattleManager extends Subject {
 
 	// Let that enemy attack
 	doEnemyAttack(attk, author) {
-		const attack = new EnemyAttack( attk )
+		const attack = getEnemyAttack(attk)
 
 		// Do an array of damage
 		for (const damage of attack.attackValue) {
 
 			// Check if that especific dmg missed
-			if ( attack.misses() ) {
+			const missed = this.calcRandomBool(attack.missChance)
+
+			if (missed) {
 				this.notify({
 					state: 'ENEMY_ATTK_MISS',
 					subject: author.name,
@@ -330,7 +333,7 @@ module.exports = class BattleManager extends Subject {
 				continue
 			}
 
-			const dmg = this.navi.recieveDamage( damage, attack.type )
+			const dmg = this.navi.recieveDamage( damage, new (coreTypeClass( attack.type )) )
 
 			this.notify({
 				state: 'ENEMY_ATTK',

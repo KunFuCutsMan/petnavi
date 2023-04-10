@@ -32,7 +32,7 @@ module.exports = async (args) => {
 			console.log('Your navi got deleted.')
 			break
 		default:
-			await NFM.updateNaviStatsInStorage(navi.name, navi)
+			await NFM.updateNaviStatsInStorage(navi.name, navi.toData() )
 			console.log( res.str )
 	}
 } // end of module
