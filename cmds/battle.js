@@ -21,67 +21,19 @@ module.exports = async (args) => {
 
 	// Main loop
 	await Bttl.mainLoop()
-
-	// Who won?
-	const bttlOutcome = Bttl.getOutcomeOfBattle()
-
-	// Heal the navi
 	navi.healStatsFully()
-
+	
 	// Check the output of the battle
-	switch ( bttlOutcome ) {
-		case 'ESCAPED':
-			console.log("You've succesfully escaped the battle")
+	const res = Bttl.calcResultsOfBattle()
+	switch ( res.res ) {
+		
+		case 'DELETION_NOW':
+			await NFM.deleteNaviWithFile(navi.name)
+			console.log('Your navi got deleted.')
 			break
-		case 'WON':
-			console.log("You've won!")
-
-			// Decide if the navi won a chip or a zenny
-			if ( Math.random() > 0.5 ) {
-				// Drop a chip
-				let chipsAvailable = [];
-				
-				for (const enemy of Bttl.deadEnemyList) {
-					chipsAvailable = chipsAvailable.concat( enemy.drops )
-				}
-
-				const j = Math.floor( Math.random() * chipsAvailable.length )
-				const chipChosen = chipsAvailable[ j ]
-
-				console.log('You got: ' + chipChosen )
-
-				navi.chipLibrary.push( chipChosen )
-			}
-			else {
-				// Gain some zenny
-				let zennies = 0
-				for (const enemy of Bttl.deadEnemyList) {
-					zennies += enemy.maxHP
-				}
-
-				zennies *= 5
-
-				console.log('You got: ' + zennies + ' zenny')
-
-				navi.zenny += zennies
-			}
-
-			await NFM.updateNaviStatsInStorage(navi.name, navi.toData() )
-
-			break
-		case 'LOST':
-
-			// Activate may be able to lose
-			if (navi.willBeDeleted) {
-				await NFM.deleteNaviWithFile(navi.name)
-				console.log('Your navi got deleted.')
-			}
-			else {
-				navi.willBeDeleted = true
-				await NFM.updateNaviStatsInStorage(navi.name, navi)
-				console.warn('Your navi is heading for deletion!')
-			}
-			break
+		default:
+			await NFM.updateNaviStatsInStorage(navi.name, navi)
+			console.log( res.str )
 	}
 } // end of module
 

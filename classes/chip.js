@@ -69,6 +69,10 @@ class TripleAttack extends Attack {
 			
 			// Find the targetted enemy
 			const enemy = targetArray[i]
+
+			// Is it an enemy?
+			if ( enemy == null || !(enemy instanceof Enemy) )
+				continue
 			
 			this.dealTadOfDamageTo( enemy, chip, chip.attackValue[valOfDamage] )
 		}

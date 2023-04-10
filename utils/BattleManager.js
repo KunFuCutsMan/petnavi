@@ -1,9 +1,6 @@
-const attackInfo = require('./AttackInfo')
-const getEnemyAttack = require('./EnemyAttacks')
 const { BattleUI, Logger } = require('../graphics')
+const { Enemy, EmptySpace, coreTypeClass, Subject, Chip, EnemyAttack } = require('../classes')
 const UI = new BattleUI()
-
-const { Enemy, EmptySpace, coreTypeClass, Subject, Chip } = require('../classes')
 
 module.exports = class BattleManager extends Subject {
 	
@@ -86,6 +83,64 @@ module.exports = class BattleManager extends Subject {
 			// Log what happened
 			await this.logger.logActionQueue()
 		}
+	}
+
+	calcResultsOfBattle() {
+		let result = { res : '', str : '' }
+
+		switch ( this.getOutcomeOfBattle() ) {
+		case 'ESCAPED':
+			result.res = "ESCAPED"
+			result.str = "You've escaped the battle"
+			break;
+		
+		case 'WON':
+			// Give monies or chips
+
+			if ( this.calcRandomBool(0.5) ) {
+				// Drop a chip
+				let chipsAvailable = [];
+				
+				for (const enemy of Bttl.deadEnemyList)
+					chipsAvailable = chipsAvailable.concat( enemy.drops )
+
+				const j = Math.floor( Math.random() * chipsAvailable.length )
+				const chipChosen = chipsAvailable[ j ]
+
+				navi.chipLibrary.push( chipChosen )
+				
+				result.res = "CHIP"
+				result.str = "You got: " + chipChosen
+			}
+			else {
+				// Gain some zenny
+				let zennies = 0
+				for (const enemy of Bttl.deadEnemyList)
+					zennies += enemy.maxHP
+
+				zennies *= 5
+
+				navi.zenny += zennies
+
+				result.res = "ZENNIES"
+				result.str = "You got: " + zennies + " zenny"
+			}
+
+			break
+	
+		case 'LOST':
+			if ( this.navi.willBeDeleted ) {
+				result.res = "DELETION_NOW"
+				result.str = "Your navi was deleted"
+			} else {
+				this.navi.willBeDeleted = true
+
+				result.res = "DELETION_SOON"
+				result.str = "Your navi is headed to deletion"
+			}
+		}
+		
+		return result
 	}
 
 	//Get the especified enemy
@@ -259,15 +314,13 @@ module.exports = class BattleManager extends Subject {
 
 	// Let that enemy attack
 	doEnemyAttack(attk, author) {
-		const attack = getEnemyAttack(attk)
+		const attack = new EnemyAttack( attk )
 
 		// Do an array of damage
 		for (const damage of attack.attackValue) {
 
 			// Check if that especific dmg missed
-			const missed = this.calcRandomBool(attack.missChance)
-
-			if (missed) {
+			if ( attack.misses() ) {
 				this.notify({
 					state: 'ENEMY_ATTK_MISS',
 					subject: author.name,
@@ -277,7 +330,7 @@ module.exports = class BattleManager extends Subject {
 				continue
 			}
 
-			const dmg = this.navi.recieveDamage( damage, new (coreTypeClass( attack.type )) )
+			const dmg = this.navi.recieveDamage( damage, attack.type )
 
 			this.notify({
 				state: 'ENEMY_ATTK',
