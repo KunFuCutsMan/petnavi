@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-const minimist = require('minimist')
+import minimist from 'minimist'
 
 async function main() {
-	const args = minimist(process.argv.slice(2))
-	let cmd = args._[0]
+	const args: minimist.ParsedArgs = minimist(process.argv.slice(2))
+	let cmd: String = args._[0]
 
 	if (args.version || args.v)
 		cmd = 'version'
