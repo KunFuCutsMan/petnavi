@@ -1,8 +1,7 @@
-const cmd = 'petnavi'
+import minimist from "minimist"
 
-const menus = {
-main: `
-	${cmd} [command] <args>
+const main: String = `
+	petnavi [command] <args>
 
 	-v or version ...... Show package version
 	-h or help ......... Show help menu for a command
@@ -14,9 +13,10 @@ main: `
 
 	COMMON ARGUMENTS:
 	<fileName> ......... File name of navi (i.e. "DefaultNaviDotEXE.json")
-	<naviName> ......... Navi's name (with .EXE suffix)`,
-start: `
-	${cmd} start [flags]
+	<naviName> ......... Navi's name (with .EXE suffix)`
+	
+const start: String = `
+	petnavi start [flags]
 
 	Start your adventure by making your own navi.
 	
@@ -30,9 +30,10 @@ start: `
 
 	FLAGS:
 	-s or --skip
-		Skip the dialog and go straight into the questions`,
-load: `
-	${cmd} load <fileName>
+		Skip the dialog and go straight into the questions`
+
+const load: String = `
+	petnavi load <fileName>
 
 	Load your navi into the module
 
@@ -45,9 +46,10 @@ load: `
 	you will save your progress via the 'save' command.
 
 	ARGUMENTS:
-	<fileName> ......... File name of navi (i.e. "DefaultNaviDotEXE.json")`,
-save: `
-	${cmd} save <naviName>
+	<fileName> ......... File name of navi (i.e. "DefaultNaviDotEXE.json")`
+
+const save: String = `
+	petnavi save <naviName>
 	
 	Save your navi into a file
 
@@ -60,9 +62,10 @@ save: `
 	includes a ".EXE" suffix aswell, so be sure to add that
 
 	ARGUMENTS:
-	<naviName> ......... Navi's name (with .EXE suffix)`,
-battle: `
-	${cmd} battle <naviName>
+	<naviName> ......... Navi's name (with .EXE suffix)`
+
+const battle: String = `
+	petnavi battle <naviName>
 
 	Do a battle!
 
@@ -80,19 +83,30 @@ battle: `
 	while others will attack with no discernable pattern.
 
 	ARGUMENTS:
-	<naviName> ......... Navi's name (with .EXE suffix)`,
-loaded: `
-	${cmd} loaded
+	<naviName> ......... Navi's name (with .EXE suffix)`
+
+const loaded: String = `
+	petnavi loaded
 
 	Show the current loaded navis
 
 	And does so with a neat navi card :)`
-}
 
-module.exports = (args) => {
-	const subCmd = args._[0] === 'help'
-		? args._[1]
-		: args._[0]
+module.exports = (args: minimist.ParsedArgs ) => {
 
-	console.log(menus[subCmd] || menus.main)
+	type commandNames = "main" | "start" | "load" | "save" | "battle" | "loaded"
+
+	const subCmd: String = args._[0] == "help"
+		? args._[1] : args._[0]
+
+	const commandList: Record<commandNames, String>  = {
+		"main": main,
+		"start": start,
+		"load": load,
+		"save": save,
+		"battle": battle,
+		"loaded": loaded
+	}
+
+	console.log( commandList[subCmd as commandNames] || commandList.main )
 }
