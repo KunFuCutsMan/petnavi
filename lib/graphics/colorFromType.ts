@@ -1,12 +1,13 @@
-const c = require('ansi-colors')
+import c from "ansi-colors";
+import { CoreType } from "../types";
 
-module.exports = function( type ) {
+export function getColorFromColorType( type: CoreType ): c.StyleFunction {
 
-	switch ( type.toUpperCase() ) {
+	switch ( type ) {
 		case 'NEUTRAL': return c.bold.white
 		case 'FIRE': return c.red
 		case 'WOOD': return c.green
-		case 'WATER': return c.blue
+		case 'AQUA': return c.blue
 		case 'ELEC': return c.bold.yellow
 		case 'SWORD': return c.cyan
 		case 'WIND': return c.gray
