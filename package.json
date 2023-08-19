@@ -15,8 +15,7 @@
 		"cliui": "^8.0.1",
 		"enquirer": "^2.3.6",
 		"minimist": "^1.2.6",
-		"node-persist": "^3.1.0",
-		"paginator": "^1.0.0"
+		"node-persist": "^3.1.0"
 	},
 	"devDependencies": {
 		"@types/minimist": "^1.2.2",
