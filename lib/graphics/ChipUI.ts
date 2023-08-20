@@ -79,10 +79,10 @@ export class ChipUI extends ViewerUI {
 	toChoiceArray( array: string[] ): Choice[] {
 		return array.map<Choice>( (v, i) => {
 			return {
-				name: `${v} - ${i}`,
+				// For some OTHER reason enquirer gives you the NAME
+				// of the choice instead of its VALUE so THAT line is useless
+				name: `${i}`,
 				message: v,
-				// For some reason enquirer breaks on value = 0
-				value: `${i + 1}`,
 			}
 		})
 	}
@@ -96,8 +96,8 @@ export class ChipUI extends ViewerUI {
 		else {
 			// Accounting for the 0 value bug in enquirer
 			navi.switchCPAttackWithChipInLibrary(
-				ans.positionOfAttackCP - 1,
-				ans.positionOfChipLibrary - 1)
+				ans.positionOfAttackCP as number,
+				ans.positionOfChipLibrary as number)
 		}
 	}
 
