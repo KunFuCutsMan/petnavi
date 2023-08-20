@@ -1,6 +1,6 @@
-// Imports and other stuff used
-const NFM = require('../utils/NaviFileManager')
-const Enquirer = require('enquirer')
+import minimist from "minimist"
+import Enquirer from "enquirer";
+import { NFM } from "../utils/NaviFileManager";
 
 // Text
 const introText = [
@@ -45,44 +45,34 @@ const naviFileText = [
 	So take care of them, ok? :)`
 ]
 
-// Module
-module.exports = async (args) => {
+module.exports = async (args: minimist.ParsedArgs) => {
 	// Flag check to see if the text wants to be skipped
-	const boolSkipText = (args.s || args.skip)
+	const boolSkipText: boolean = (args.s || args.skip)
 
 	const enquirer = new Enquirer()
-	enquirer.register('inputAfterText', require('../graphics/enquirer/InputAfterText') )
-	enquirer.register('selectAfterText', require('../graphics/enquirer/SelectAfterText') )
-	enquirer.register('confirmAfterText', require('../graphics/enquirer/ConfirmAfterText') )
 
-	const answers = await enquirer.prompt([
+	const answers: Record<string, any> = await enquirer.prompt([
 		{
-			type: 'inputaftertext',
+			type: 'text',
 			name: 'name',
-			message: 'What is the name of your navi?',
-			textToShow: (!boolSkipText) ? introText.join('\n') : '',
+			message: `${ !boolSkipText ? introText.join('\n') + '\n\n' : '' }What is the name of your navi?`,
 			result: function(value) {
-				value = value.replace(/\s+/gm,'')
+				value = value.replace(/\s+/gm, '')
 				const firstLetter = value.charAt(0).toUpperCase()
 				return firstLetter + value.slice(1)
 			}
 		}, {
-			type: 'selectaftertext',
+			type: 'select',
 			name: 'core',
-			message: 'What is the type or your navi (can be changed later) ?',
-			textToShow: (!boolSkipText) ? coreTypeText.join('\n') : '',
+			message: `${ !boolSkipText ? coreTypeText.join('\n') + '\n\n' : '' }What is the type or your navi (can be changed later) ?`,
 			choices: [
-				'NEUTRAL', 'FIRE', 'WOOD', 'ELEC', 'WATER',
+				'NEUTRAL', 'FIRE', 'WOOD', 'ELEC', 'AQUA',
 				'SWORD', 'WIND', 'TARGET', 'BREAK'
 			],
-				default: 0,
-				loop: false,
-				pageSize: 9
 		}, {
 			type: 'confirm',
 			name: 'confirm',
-			textToShow: (!boolSkipText) ? naviFileText.join('\n') : '',
-			message: 'Wish to create your navi file in this directory?'
+			message: `${ !boolSkipText ? naviFileText.join('\n') + '\n\n' : '' }Wish to create your navi file in this directory?`
 		}
 	])
 
