@@ -4,7 +4,7 @@ import { AvoidedStatus, DefendedStatus, Status, StatusType, getStatus } from "./
 
 export class Enemy {
 
-	readonly name: string
+	name: string
 	readonly core: Core
 	readonly maxHP: number
 	HP: number
