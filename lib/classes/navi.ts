@@ -1,4 +1,4 @@
-import { NaviFile } from "../types"
+import { NaviFile, NaviName } from "../types"
 import { getCore, Core } from "./coreTypes"
 import { DefendedStatus, Status, StatusType, getStatus } from "./statusEffect"
 
@@ -6,7 +6,7 @@ export class Navi {
 
 	DEFEND_BONUS = 0.3
 	RECOVERY_BONUS = 0.2
-	name: string
+	name: NaviName
 	level: number
 	core: Core
 	maxHP: number

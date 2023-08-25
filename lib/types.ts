@@ -14,7 +14,7 @@ export type CoreType = "NEUTRAL"
     | "BREAK"
 
 export interface NaviFile {
-    name: string,
+    name: NaviName,
     level: number,
     core: CoreType,
     maxHP: number,

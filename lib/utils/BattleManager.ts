@@ -1,37 +1,55 @@
-const { BattleUI, Logger } = require('../graphics')
-const { Enemy, EmptySpace, coreTypeClass, Subject, Chip } = require('../classes')
-const getEnemyAttack = require('./EnemyAttacks')
+import { EmptySpace } from "../classes/EmptySpace"
+import { Chip } from "../classes/chip"
+import { getCore } from "../classes/coreTypes"
+import { Enemy } from "../classes/enemy"
+import { Navi } from "../classes/navi"
+import { Subject } from "../classes/observer"
+import { BurnedStatus } from "../classes/statusEffect"
+import { BattleUI } from "../graphics/BattleUI"
+import { getEnemyAttack } from "./EnemyAttacks"
+
 const UI = new BattleUI()
 
-module.exports = class BattleManager extends Subject {
+export type BattleSpace = Array< Enemy | EmptySpace >
+
+export class BattleManager extends Subject {
 	
 	// How likely are you able to escape
 	escapePercent = 0.2
 
-	constructor( Navi, enemyList, canEscape ) {
+	navi: Navi
+	enemyList: BattleSpace
+	deadEnemyList: BattleSpace = []
+	isEscaped: boolean = false
+
+	readonly canEscapeBattle: boolean
+
+	constructor( navi: Navi, enemyList: BattleSpace, canEscape: boolean ) {
 		super()
 		
-		this.navi = Navi
+		this.navi = navi
 		this.enemyList = this.renameToUniqueEnemies( enemyList )
-		this.deadEnemyList = []
 		
 		// Setting up for being able to escape
-		this.isPossibleToEscape = canEscape
-		this.isEscaped = false
+		this.canEscapeBattle = canEscape
 
+		/*
 		// And attach the logger
 		this.logger = new Logger(this.navi.name)
 		this.attach( this.logger )
+		*/
 	}
 
 	// Gets an array of enemy names, returns an array of said enemies
-	renameToUniqueEnemies( enemyList ) {
-		let list = []
-		let enemyCount = {} // Object that will be used to count enemies
+	private renameToUniqueEnemies( enemyList: BattleSpace ): BattleSpace {
+		let list: BattleSpace = []
+		let enemyCount: Record<string, number> = {} // Object that will be used to count enemies
 
 		for (const enemy of enemyList) {
-			if ( enemy instanceof EmptySpace )
+			if ( enemy instanceof EmptySpace ) {
+				list.push( enemy )
 				continue
+			}
 
 			// Increase the count of that enemy's occurances
 			if (enemyCount[ enemy.name ] == undefined)
@@ -49,7 +67,7 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	// Loop as seen previously in battle.js
-	async mainLoop() {
+	public async mainLoop() {
 		while ( !this.isBattleOver() ) {
 			
 			// Decide what to do
@@ -75,18 +93,19 @@ module.exports = class BattleManager extends Subject {
 			this.enemyLifeCheck()
 
 			// If battle isn't escaped let the enemies attack
-			if( !this.isEscaped ) {
+			if( !this.isEscaped )
 				this.enemiesTurn()
-			}
 
 			this.navi.updateStatuses()
 
+			/*
 			// Log what happened
 			await this.logger.logActionQueue()
+			*/
 		}
 	}
 
-	calcResultsOfBattle() {
+	public calcResultsOfBattle() {
 		let result = { res : '', str : '' }
 
 		switch ( this.getOutcomeOfBattle() ) {
@@ -100,10 +119,11 @@ module.exports = class BattleManager extends Subject {
 
 			if ( this.calcRandomBool(0.5) ) {
 				// Drop a chip
-				let chipsAvailable = [];
+				let chipsAvailable: string[] = [];
 				
 				for (const enemy of this.deadEnemyList)
-					chipsAvailable = chipsAvailable.concat( enemy.drops )
+					if ( enemy instanceof Enemy )
+						chipsAvailable = chipsAvailable.concat( enemy.drops )
 
 				const j = Math.floor( Math.random() * chipsAvailable.length )
 				const chipChosen = chipsAvailable[ j ]
@@ -117,7 +137,8 @@ module.exports = class BattleManager extends Subject {
 				// Gain some zenny
 				let zennies = 0
 				for (const enemy of this.deadEnemyList)
-					zennies += enemy.maxHP
+					if ( enemy instanceof Enemy )
+						zennies += enemy.maxHP
 
 				zennies *= 5
 
@@ -145,14 +166,14 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	//Get the especified enemy
-	getEspecifiedEnemy(name) {
-		return this.enemyList.find( o => {
-			return o.name === name
+	private getEspecifiedEnemy(name: string) {
+		return this.enemyList.find( (o): o is Enemy => {
+			return o instanceof Enemy && o.name === name
 		} )
 	}
 
 	// Get the outcome of the battle
-	getOutcomeOfBattle() {
+	private getOutcomeOfBattle(): 'ESCAPED' | 'LOST' | 'WON' | string {
 		if (this.isEscaped)
 			return 'ESCAPED'
 		else if (this.navi.HP <= 0)
@@ -167,7 +188,7 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	// Either if the battle was escaped from, navi has no HP, or enemies are EMPTY_SPACE
-	isBattleOver() {
+	private isBattleOver() {
 		const isEscaped = this.isEscaped
 		const isNaviDead = this.navi.HP <= 0
 		const areEnemiesDead = this.enemyList.every( e => e instanceof EmptySpace )
@@ -175,8 +196,11 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	// "Attack" action
-	naviAttacks(target) {
+	private naviAttacks(target: string) {
 		const enemy = this.getEspecifiedEnemy(target)
+
+		if ( !enemy )
+			return
 
 		this.notify({
 			state: 'ATTACK',
@@ -198,13 +222,16 @@ module.exports = class BattleManager extends Subject {
 			subject: enemy.name
 		})
 		
-		enemy.recieveDamage( 10, new (coreTypeClass('NEUTRAL')) )
+		enemy.recieveDamage( 10, getCore("NEUTRAL") )
 	}
 
 	// "Cyber Actions" attack
-	naviCyberAttacks(target, cpAttack) {
+	private naviCyberAttacks(target: string, cpAttack: string) {
 		const chip = new Chip( cpAttack )
 		const enemy = this.getEspecifiedEnemy(target)
+
+		if ( !enemy )
+			return
 
 		this.notify({ // SUBJECT used CHIP
 			state: 'CYBER_ATTK_USE',
@@ -220,21 +247,21 @@ module.exports = class BattleManager extends Subject {
 		}
 
 		// check chip's target type and do damage to corresponding targets
-		chip.attach( this.logger )
-		if ( chip.target != 'Heal' ) {
+		// chip.attach( this.logger )
+		if ( chip.target !== "HEAL" ) {
 			chip.attack( this.enemyList, this.enemyList.indexOf( enemy ) )
 		}
-		else if ( chip.target == 'Heal' || chip.target == 'Self' ) {
+		else if ( chip.target == 'HEAL' || chip.target == 'SELF' ) {
 			chip.attack( [ this.navi ], 0 )
 		}
 		else {
 			this.notify({ state: 'NOT_IMPLEMENTED'})
 		}
-		chip.detach( this.logger )
+		// chip.detach( this.logger )
 	}
 
 	// "Defend" action
-	naviDefends() {
+	private naviDefends() {
 		this.notify({ state: 'NAVI_DEFENDED' })
 
 		// See doEnemyAttack() to see what is done with this flag
@@ -249,10 +276,10 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	// "Escape" action
-	naviEscapes() {
+	private naviEscapes() {
 		this.notify({ state: 'NAVI_ESCAPE' })
 
-		if (!this.isPossibleToEscape) {
+		if (!this.canEscapeBattle) {
 			this.notify({ state: 'NAVI_CANT_ESCAPE' })
 			return
 		}
@@ -265,7 +292,7 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	// Enemies' turn
-	enemiesTurn() {
+	private enemiesTurn() {
 
 		// Let each enemy do their action
 		for (const enemy of this.enemyList) {
@@ -314,7 +341,7 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	// Let that enemy attack
-	doEnemyAttack(attk, author) {
+	private doEnemyAttack(attk: string, author: Enemy) {
 		const attack = getEnemyAttack(attk)
 
 		// Do an array of damage
@@ -333,7 +360,7 @@ module.exports = class BattleManager extends Subject {
 				continue
 			}
 
-			const dmg = this.navi.recieveDamage( damage, new (coreTypeClass( attack.type )) )
+			const dmg = this.navi.recieveDamage( damage, getCore( attack.type ) )
 
 			this.notify({
 				state: 'ENEMY_ATTK',
@@ -346,7 +373,7 @@ module.exports = class BattleManager extends Subject {
 
 	// this.enemyList is modified to its normal state
 	// minus the enemies which have 0 or less hp
-	enemyLifeCheck() {
+	private enemyLifeCheck() {
 
 		for (const e of this.enemyList) {
 			if ( !(e instanceof Enemy) || e.HP > 0 )
@@ -366,7 +393,7 @@ module.exports = class BattleManager extends Subject {
 		}
 	}
 
-	enemyStatusCheck() {
+	private enemyStatusCheck() {
 
 		for (const enemy of this.enemyList ) {
 			if ( !( enemy instanceof Enemy ) )
@@ -375,17 +402,16 @@ module.exports = class BattleManager extends Subject {
 			if ( enemy.hasStatus('BURNED') ) {
 				// Check if has an active status
 
-				if ( enemy.statusList['BURNED'].isActive ) {
+				if ( (enemy.statusList['BURNED'] as BurnedStatus).isActive ) {
 					enemy.recieveDamage(
-						enemy.statusList['BURNED'].burn(),
-						new( coreTypeClass('FIRE') )  )
+						(enemy.statusList['BURNED'] as BurnedStatus).burn(), getCore("FIRE") )
 
 					this.notify({
 						state: 'BURN_INJURIES',
 						subject: enemy.name
 					})
 				}
-				else enemy.statusList['BURNED'].isActive = true
+				else (enemy.statusList['BURNED'] as BurnedStatus).isActive = true
 			}
 
 			enemy.updateStatuses()
@@ -393,7 +419,7 @@ module.exports = class BattleManager extends Subject {
 	}
 
 	// Based on a float value between 0 and 1 return a random boolean
-	calcRandomBool(float) {
+	private calcRandomBool(float: number) {
 		const x = Math.random()
 		return x <= float
 	}
