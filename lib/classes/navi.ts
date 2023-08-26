@@ -48,7 +48,7 @@ export class Navi {
 	}
 
 	hasStatus( status: StatusType ) {
-		return this.statusList[status].statusType === status ?? false
+		return this.statusList[status]?.statusType === status ?? false
 	}
 
 	updateStatuses() {
