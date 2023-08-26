@@ -218,7 +218,8 @@ export class BattleManager implements Subject {
 
 		this.notify({
 			state: 'ATTACK',
-			subject: this.navi.name
+			subject: this.navi.name,
+			target: enemy.name
 		})
 
 		// check if the target will avoid the attack
@@ -369,6 +370,7 @@ export class BattleManager implements Subject {
 				this.notify({
 					state: 'ENEMY_ATTK_MISS',
 					subject: author.name,
+					target: this.navi.name,
 					attackName: attack.name
 				})
 
@@ -380,6 +382,7 @@ export class BattleManager implements Subject {
 			this.notify({
 				state: 'ENEMY_ATTK',
 				subject: author.name,
+				target: this.navi.name,
 				damage: dmg,
 				attackName: attack.name
 			})
