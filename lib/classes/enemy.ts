@@ -87,7 +87,7 @@ export class Enemy {
 
 		// Either way, if what we get is an array, we will follow that sequence
 		if ( action instanceof Array ) {
-			this.secuence = action
+			this.secuence = [ ...action ]
 			action = this.chooseAction()
 		}
 
