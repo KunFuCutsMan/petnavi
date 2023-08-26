@@ -3,16 +3,18 @@ import { Chip } from "../classes/chip"
 import { getCore } from "../classes/coreTypes"
 import { Enemy } from "../classes/enemy"
 import { Navi } from "../classes/navi"
-import { Subject } from "../classes/observer"
+import { Observer, Subject } from "./observer"
 import { BurnedStatus } from "../classes/statusEffect"
 import { BattleUI } from "../graphics/BattleUI"
 import { getEnemyAttack } from "./EnemyAttacks"
+import { Logger, LoggingState } from "../graphics/logger"
 
 const UI = new BattleUI()
+const logger = new Logger()
 
 export type BattleSpace = Array< Enemy | EmptySpace >
 
-export class BattleManager extends Subject {
+export class BattleManager implements Subject {
 	
 	// How likely are you able to escape
 	escapePercent = 0.2
@@ -25,7 +27,6 @@ export class BattleManager extends Subject {
 	readonly canEscapeBattle: boolean
 
 	constructor( navi: Navi, enemyList: BattleSpace, canEscape: boolean ) {
-		super()
 		
 		this.navi = navi
 		this.enemyList = this.renameToUniqueEnemies( enemyList )
@@ -33,11 +34,26 @@ export class BattleManager extends Subject {
 		// Setting up for being able to escape
 		this.canEscapeBattle = canEscape
 
-		/*
 		// And attach the logger
-		this.logger = new Logger(this.navi.name)
-		this.attach( this.logger )
-		*/
+		this.attach( logger )
+	}
+
+	observers: Observer<LoggingState>[] = []
+
+	attach(o: Observer): void {
+		if ( this.observers.includes( o ) )
+			return
+		this.observers.push(o)
+	}
+	detach(o: Observer): void {
+		const observerIdx = this.observers.indexOf( o )
+		if ( observerIdx === -1 )
+			return
+		this.observers.splice( observerIdx, 1 )
+	}
+	notify(s: LoggingState): void {
+		for ( const o of this.observers )
+			o.update( s )
 	}
 
 	// Gets an array of enemy names, returns an array of said enemies
@@ -98,10 +114,8 @@ export class BattleManager extends Subject {
 
 			this.navi.updateStatuses()
 
-			/*
 			// Log what happened
-			await this.logger.logActionQueue()
-			*/
+			await logger.logActionQueue()
 		}
 	}
 
@@ -204,7 +218,7 @@ export class BattleManager extends Subject {
 
 		this.notify({
 			state: 'ATTACK',
-			target: enemy.name
+			subject: this.navi.name
 		})
 
 		// check if the target will avoid the attack
@@ -233,9 +247,10 @@ export class BattleManager extends Subject {
 		if ( !enemy )
 			return
 
-		this.notify({ // SUBJECT used CHIP
+		this.notify({
 			state: 'CYBER_ATTK_USE',
-			chip: chip.name
+			subject: this.navi.name,
+			attackName: chip.name
 		})
 
 		// check if chip is usable
@@ -247,7 +262,7 @@ export class BattleManager extends Subject {
 		}
 
 		// check chip's target type and do damage to corresponding targets
-		// chip.attach( this.logger )
+		chip.attach( logger )
 		if ( chip.target !== "HEAL" ) {
 			chip.attack( this.enemyList, this.enemyList.indexOf( enemy ) )
 		}
@@ -257,12 +272,12 @@ export class BattleManager extends Subject {
 		else {
 			this.notify({ state: 'NOT_IMPLEMENTED'})
 		}
-		// chip.detach( this.logger )
+		chip.detach( logger )
 	}
 
 	// "Defend" action
 	private naviDefends() {
-		this.notify({ state: 'NAVI_DEFENDED' })
+		this.notify({ state: 'NAVI_DEFENDED', subject: this.navi.name })
 
 		// See doEnemyAttack() to see what is done with this flag
 		this.navi.getsStatus('DEFENDED')
@@ -271,16 +286,16 @@ export class BattleManager extends Subject {
 		this.navi.healCP( this.navi.defendCPBonus )
 
 		if ( this.navi.CP >= this.navi.maxCP )
-			this.notify({ state: 'HEAL_CP_FULLY' })
-		else this.notify({ state: 'HEAL_CP' })
+			this.notify({ state: 'HEAL_CP_FULLY', subject: this.navi.name })
+		else this.notify({ state: 'HEAL_CP', subject: this.navi.name })
 	}
 
 	// "Escape" action
 	private naviEscapes() {
-		this.notify({ state: 'NAVI_ESCAPE' })
+		this.notify({ state: 'NAVI_ESCAPE', subject: this.navi.name })
 
 		if (!this.canEscapeBattle) {
-			this.notify({ state: 'NAVI_CANT_ESCAPE' })
+			this.notify({ state: 'NAVI_CANT_ESCAPE', subject: this.navi.name })
 			return
 		}
 
@@ -288,7 +303,7 @@ export class BattleManager extends Subject {
 		this.isEscaped = this.calcRandomBool(this.escapePercent)
 		
 		if (!this.isEscaped)
-			this.notify({ state: 'NAVI_ESCAPE_FAIL' })
+			this.notify({ state: 'NAVI_ESCAPE_FAIL', subject: this.navi.name })
 	}
 
 	// Enemies' turn
@@ -354,7 +369,7 @@ export class BattleManager extends Subject {
 				this.notify({
 					state: 'ENEMY_ATTK_MISS',
 					subject: author.name,
-					chip: attack.name
+					attackName: attack.name
 				})
 
 				continue
@@ -366,7 +381,7 @@ export class BattleManager extends Subject {
 				state: 'ENEMY_ATTK',
 				subject: author.name,
 				damage: dmg,
-				chip: attack.name
+				attackName: attack.name
 			})
 		}
 	}

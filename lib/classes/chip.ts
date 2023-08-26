@@ -1,16 +1,33 @@
-import Logger from "../graphics/logger"
 import { BattleSpace } from "../utils/BattleManager"
 import { ChipAttackTarget, getChipInfo } from "../utils/chipAttackInfo"
 import { EmptySpace } from "./EmptySpace"
 import { Core, getCore } from "./coreTypes"
 import { Enemy } from "./enemy"
 import { Navi } from "./navi"
-import { Subject } from "./observer"
+import { Observer, Subject } from "../utils/observer"
 import { StatusType } from "./statusEffect"
+import { LoggingState } from "../graphics/logger"
 
 type Hittable = Navi | Enemy
 
-export abstract class Attack extends Subject {
+export abstract class Attack implements Subject<LoggingState> {
+	
+	observers: Observer<LoggingState>[] = []
+	attach(o: Observer): void {
+		if ( this.observers.includes( o ) )
+			return
+		this.observers.push(o)
+	}
+	detach(o: Observer): void {
+		const observerIdx = this.observers.indexOf( o )
+		if ( observerIdx === -1 )
+			return
+		this.observers.splice( observerIdx, 1 )
+	}
+	notify(s: LoggingState): void {
+		for ( const o of this.observers )
+			o.update( s )
+	}
 
 	abstract attack( chip: Chip, targetArray: Array<Hittable | EmptySpace>, indexOfTarget: number ): void
 
@@ -34,7 +51,7 @@ export abstract class Attack extends Subject {
 			subject: 'Someone',
 			damage: damage,
 			target: enemy.name,
-			chip: chip.name,
+			attackName: chip.name,
 		})
 
 		if ( chip.core.status && !enemy.hasStatus( chip.core.status as StatusType ) ) {
@@ -100,7 +117,8 @@ class SelfAttack extends Attack {
 			// And hurt it >:}
 			this.notify({
 				state: 'NAVI_AUTOHURT',
-				chip: chip.name,
+				subject: navi.name,
+				attackName: chip.name,
 			})
 			navi.recieveDamage( dmg, chip.core )
 		}
@@ -121,10 +139,12 @@ class HealAttack extends Attack {
 		// And notify the results
 		if ( navi.HP >= navi.maxHP ) {
 			this.notify({
-				state: 'HEAL_HP_FULLY'
+				state: 'HEAL_HP_FULLY',
+				subject: navi.name,
 			})
 		} else this.notify({
 			state: 'HEAL_HP',
+			subject: navi.name,
 			HP: chip.attackValue[0]
 		})
 	}
@@ -171,7 +191,7 @@ export class ReactAttack extends Attack {
 	}
 }
 
-export class Chip extends Logger {
+export class Chip implements Subject {
 
 	readonly name: string
 	readonly core: Core
@@ -183,7 +203,6 @@ export class Chip extends Logger {
 	readonly attk: Attack
 
 	constructor( chipName: string ) {
-		super()
 		const { name, type, cpCost, target, attackValue, canTarget } = getChipInfo( chipName )
 		this.name = name
 		this.core = getCore( type )
@@ -225,6 +244,16 @@ export class Chip extends Logger {
 				this.attk = new ReactAttack()
 				break
 		}
+	}
+
+	attach(o: Observer): void {
+		this.attk.attach( o )
+	}
+	detach(o: Observer): void {
+		this.attk.detach( o )
+	}
+	notify(s: LoggingState): void {
+		this.attk.notify( s )
 	}
 
 	attack( targetArray: BattleSpace | Navi[], indexOfTarget: number ) {
