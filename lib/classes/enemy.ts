@@ -1,6 +1,6 @@
 import { getCore, Core } from "./coreTypes"
 import { AttackPattern, getEnemyData } from "../utils/EnemyList";
-import { AvoidedStatus, DefendedStatus, Status, StatusType, getStatus } from "./statusEffect";
+import { AvoidedStatus, DefendedStatus, Status, StatusList, StatusType, getStatus } from "./statusEffect";
 
 export class Enemy {
 
@@ -11,8 +11,7 @@ export class Enemy {
 	readonly attacksCP: AttackPattern
 	secuence: AttackPattern
 	readonly drops: string[]
-	readonly statusList: Record<StatusType, Status>
-
+	readonly statusList: StatusList = {}
 
 	constructor( name: string ) {
 		// Get the stats from said enemy
@@ -26,9 +25,6 @@ export class Enemy {
 		this.attacksCP = data.attacksCP
 		this.secuence = data.secuence
 		this.drops = data.drops
-
-		// Properties from the class
-		this.statusList = {} as Record<StatusType, Status>
 	}
 
 	getsStatus( status: StatusType ) {
@@ -43,9 +39,9 @@ export class Enemy {
 		for ( const stat in this.statusList ) {
 			const status = this.statusList[ stat as StatusType ]
 
-			status.decreaseCounter()
+			status?.decreaseCounter()
 
-			if ( status.isStatusOver() )
+			if ( status?.isStatusOver() ?? false )
 				delete this.statusList[ stat as StatusType ]
 		}
 	}

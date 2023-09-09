@@ -1,6 +1,6 @@
 import { NaviFile, NaviName } from "../types"
 import { getCore, Core } from "./coreTypes"
-import { DefendedStatus, Status, StatusType, getStatus } from "./statusEffect"
+import { DefendedStatus, Status, StatusList, StatusType, getStatus } from "./statusEffect"
 
 export class Navi {
 
@@ -18,7 +18,7 @@ export class Navi {
 	dir: string
 	zenny: number
 	chipLibrary: string[]
-	statusList: Record<StatusType, Status>
+	statusList: StatusList = {}
 	
 	constructor ( naviJson: NaviFile ) {
 
@@ -35,9 +35,6 @@ export class Navi {
 		this.dir = naviJson.dir
 		this.zenny = naviJson.zenny
 		this.chipLibrary = [ ...naviJson.chipLibrary ]
-
-		// Properties from the class
-		this.statusList = {} as Record<StatusType, Status>
 	}
 
 	getsStatus( status: StatusType ) {
@@ -55,9 +52,9 @@ export class Navi {
 		for ( const stat in this.statusList ) {
 			const status = this.statusList[ stat as StatusType ]
 
-			status.decreaseCounter()
+			status?.decreaseCounter()
 
-			if ( status.isStatusOver() ) {
+			if ( status?.isStatusOver() ) {
 				delete this.statusList[ stat as StatusType ]
 			}
 		}

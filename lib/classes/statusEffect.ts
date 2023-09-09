@@ -6,6 +6,8 @@ export type StatusType =
 	| "BURNED"
 	| "STUNNED"
 
+export type StatusList = Partial< Record<StatusType, Status> >
+
 export abstract class Status {
 
 	static CHANCE_TO_STATUS = 0.3

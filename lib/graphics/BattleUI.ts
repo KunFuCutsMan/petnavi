@@ -5,7 +5,7 @@ import { Enemy } from "../classes/enemy";
 import { ViewerUI } from "./ViewerUI";
 import { getChipInfo } from "../utils/chipAttackInfo";
 import { getColorFromColorType } from "./colorFromType";
-import { Status, StatusType } from "../classes/statusEffect";
+import { Status, StatusList, StatusType } from "../classes/statusEffect";
 
 /**
  * BattleUI will handle anything visual from the BattleManager
@@ -97,16 +97,16 @@ export class BattleUI extends ViewerUI {
 		}
 	}
 
-	private enemyStatusStr( statHash: Record<StatusType, Status> ): string {
+	private enemyStatusStr( statHash: StatusList ): string {
 		let str = ''
 
 		for (const stat in statHash) {
 			const status = statHash[stat as StatusType]
 
-			let c = status.counter
+			let c = status?.counter ?? 0
 
 			while(c >= 0) {
-				str += status.symbol
+				str += status!.symbol
 				c--
 			}
 
