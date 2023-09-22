@@ -4,7 +4,7 @@ import { NFM } from "../utils/NaviFileManager";
 import { NaviCardUI } from "../graphics/NaviCardUI";
 import { Navi } from "../classes/navi";
 
-module.exports = async (args: minimist.ParsedArgs ) => {
+export default async function loaded(args: minimist.ParsedArgs) {
 	const loadedNavis = await NFM.getAllLoadedNavis()
 	const UI = new NaviCardUI(80)
 

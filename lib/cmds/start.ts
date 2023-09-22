@@ -45,7 +45,7 @@ const naviFileText = [
 	So take care of them, ok? :)`
 ]
 
-module.exports = async (args: minimist.ParsedArgs) => {
+export default async function start(args: minimist.ParsedArgs) {
 	// Flag check to see if the text wants to be skipped
 	const boolSkipText: boolean = (args.s || args.skip)
 

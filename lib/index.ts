@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 import minimist from 'minimist'
+import help from "./cmds/help"
+import version from './cmds/version'
+import start from './cmds/start'
+import load from './cmds/load'
+import save from './cmds/save'
+import battle from './cmds/battle'
+import loaded from './cmds/loaded'
+import folder from './cmds/folder'
 
 async function main() {
 	const args: minimist.ParsedArgs = minimist(process.argv.slice(2))
@@ -13,28 +21,28 @@ async function main() {
 	
 	switch (cmd) {
 		case 'help':
-			require('./cmds/help')(args)
+			help(args)
 			break
 		case 'version':
-			require('./cmds/version')(args)
+			version(args)
 			break
 		case 'start':
-			require('./cmds/start')(args)
+			start(args)
 			break
 		case 'load':
-			require('./cmds/load')(args)
+			load(args)
 			break
 		case 'save':
-			require('./cmds/save')(args)
+			save(args)
 			break
 		case 'battle':
-			require('./cmds/battle')(args)
+			battle(args)
 			break
 		case 'loaded':
-			require('./cmds/loaded')(args)
+			loaded(args)
 			break
 		case 'folder':
-			require('./cmds/folder')(args)
+			folder(args)
 			break
 		default:
 			console.error(`"${cmd}" is not a valid command!`)

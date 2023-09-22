@@ -5,7 +5,7 @@ import { NaviName } from "../types";
 import { Navi } from "../classes/navi";
 import { ChipUI } from "../graphics/ChipUI";
 
-module.exports = async (args: minimist.ParsedArgs) => {
+export default async function folder(args: minimist.ParsedArgs) {
 	// Get the navi (and break the program if you don't)
 	const naviName = args._[1] as NaviName
 	const naviData = await NFM.getNaviFromStorage( naviName )

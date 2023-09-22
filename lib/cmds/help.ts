@@ -92,7 +92,7 @@ const loaded: String = `
 
 	And does so with a neat navi card :)`
 
-module.exports = (args: minimist.ParsedArgs ) => {
+export default async function help(args: minimist.ParsedArgs) {
 
 	type commandNames = "main" | "start" | "load" | "save" | "battle" | "loaded"
 

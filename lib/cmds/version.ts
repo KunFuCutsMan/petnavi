@@ -1,6 +1,6 @@
 import minimist from 'minimist'
-import { version } from '../../package.json'
+import * as p from '../../package.json'
 
-export default (args: minimist.ParsedArgs ) => {
-	console.log(`v${version}`)
+export default async function version(args: minimist.ParsedArgs) {
+	console.log(`v${p.version}`)
 }

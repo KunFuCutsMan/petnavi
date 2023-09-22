@@ -2,7 +2,7 @@ import minimist from "minimist";
 import { NFM } from "../utils/NaviFileManager";
 import { NaviName } from "../types";
 
-module.exports = async (args: minimist.ParsedArgs ) => {
+export default async function save(args: minimist.ParsedArgs) {
 	// Get the navi (and break the program if you don't)
 	const naviName = args._[1] as NaviName
 	const json = await NFM.getNaviFromStorage( naviName )

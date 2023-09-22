@@ -2,8 +2,7 @@ import minimist from "minimist"
 import { NFM } from "../utils/NaviFileManager";
 import { isNaviFile } from "../types";
 
-// Module
-module.exports = async (args: minimist.ParsedArgs) => {
+export default async function load(args: minimist.ParsedArgs) {
 	// Get the file's name
 	const fileName = args._[1] ? args._[1] : ''
 
